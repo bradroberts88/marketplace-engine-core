@@ -1,0 +1,4 @@
+ca-certificates
+curl
+network-manager
+policykit-1
