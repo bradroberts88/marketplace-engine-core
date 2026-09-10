@@ -1,0 +1,34 @@
+[Unit]
+Description=AutoPost Bluetooth setup (redundant WiFi rescue over BLE)
+Documentation=https://marketplaceautopost.com
+After=bluetooth.service
+Wants=bluetooth.service
+# Deliberately NO network-online.target and NO ConditionPathExists=config.json, for the same reasons
+# autopost-wifi-recovery.service has neither: this service exists precisely for the box that never got online
+# and therefore never claimed. It must run pre-claim, offline, with nothing gating it.
+#
+# Deliberately NO RequiresMountsFor=/var/lib/autopost either, unlike the connector unit. The data partition is
+# fstab'd nofail, and a rescue service that refuses to start because a partition is missing has failed at the
+# one job it has. It degrades to the rootfs path instead.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=autopost
+Group=autopost
+# BlueZ's D-Bus policy grants the bluetooth group access to org.bluez; 60-autopost-bluez.conf additionally names
+# the autopost user outright, so this works whether or not the distro ships the group policy.
+SupplementaryGroups=bluetooth
+WorkingDirectory=/opt/autopost/connector
+Environment=CONNECTOR_RUNTIME_DIR=/var/lib/autopost/runtime
+Environment=CONNECTOR_CONFIG=/var/lib/autopost/config.json
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /opt/autopost/connector/deploy/pi/autopost-ble-setup.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectHome=true
+ReadWritePaths=/var/lib/autopost
+
+[Install]
+WantedBy=multi-user.target
