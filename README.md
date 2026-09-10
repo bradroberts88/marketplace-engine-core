@@ -90,14 +90,21 @@ This is the first batch of material; more is on the way.
 | `install/run-agent.cmd` | Supervisor loop the task launches; relaunches the agent 5s after any exit. |
 | `install/uninstall-connector.ps1` | Removes the scheduled task and stops any running agent. |
 | `scripts/sign-build.js` | Signs an agent build with the operator's Ed25519 private key and writes a detached `.sig` the agent verifies before updating. |
+| `server/src/index.js` | Tunnel entry point: loads config, builds the store, starts the control WS, proxy, claim and admin servers. |
+| `server/src/hub.js` | Shared state between the control channel and the proxy: agent registry, liveness, open streams, fail-closed enforcement, event log. |
+| `server/src/control-server.js` | WS endpoint each dealership agent dials out to: token auth plus a 15s ping/pong so a silently-dead agent is dropped in ~30s. |
+| `server/src/proxy-server.js` | Fail-closed HTTP CONNECT proxy for rep/GoLogin clients, with a 15s reconnect grace and destination/port allow-lists. |
+| `server/src/dealership-store.js` | Hot JSON store for dealership identity: agent tokens, proxy credentials and one-time Crockford claim codes; atomic writes. |
+| `server/src/claim-server.js` | The single public first-run endpoint (`POST /claim`, `GET /health`) with per-IP and global rate limits. |
+| `server/src/admin-api.js` | Localhost-only, token-authenticated admin HTTP: status, events, pause/resume, restart, create/reissue/rotate/revoke dealerships. |
 | `server/README.md` | The VPS-side tunnel server: what it does, the fail-closed guarantee, config table and test-vs-production topology. |
 | `server/package.json` / `server/package-lock.json` | Node manifest and lockfile for `dealership-tunnel-server` (only dependency: `ws`). |
 | `server/config.example.json` | Template for the server `config.json`: control/proxy/admin/claim ports, allow-lists, claim-code onboarding (placeholders only). |
 | `server/test-claim-flow.js` | End-to-end claim-code test on loopback: create, claim, connect, every rejection path, token rotate/revoke force-disconnect. |
 | `server/.gitignore` | Keeps the server's `node_modules/`, `config.json` and logs out of the repository. |
 
-`server/src/index.js` — the tunnel server itself — has not been uploaded yet, so
-`server/test-claim-flow.js` cannot run until it lands.
+`server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
+it currently passes 21/21 on loopback.
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
