@@ -23,6 +23,8 @@ This is the first batch of material; more is on the way.
 | `wifi-rescue.md` | Field WiFi rescue: causes, fixes, and on-site procedure. |
 | `claim-onboarding.md` | Claim-code self-serve onboarding: identity store, claim endpoint, security model. |
 | `desktop-app-roadmap.md` | Desktop app roadmap to 1,000 clients: shipped work and prioritized phases. |
+| `flasher-packaging.md` | Packaging and deployment of the VA Pi Setup flasher (electron-builder outputs, prereqs). |
+| `install-dealership.md` | Dealership-facing install guide for the AutoPost desktop app. |
 
 ### bench/
 
@@ -35,9 +37,16 @@ This is the first batch of material; more is on the way.
 
 | File | Purpose |
 |---|---|
+| `README.md` | Connector overview: what it is, why, architecture, and baked-in safeguards. |
+| `package.json` / `package-lock.json` | Node manifest and lockfile (`dealership-connector`, product name "AutoPost"). |
 | `src/agent.js` | The connector agent: dials out to the control server over WSS, relays rep streams, heartbeat, remote config, auto-update with rollback. |
 | `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
 | `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
+| `firstrun-ui.js` | First-run setup screen: redeems a one-time setup code against the claim endpoint and writes `config.json`. |
+| `preview-ui.js` | Dashboard preview with a mock tunnel (`node preview-ui.js`, sign in manager / preview). |
+| `firstrun-test.js` | End-to-end loopback test of the first-run setup flow against the real claim server. |
+| `never-drop-test.js` | Loopback test of the agent's liveness plumbing (hello, ping, heartbeat.json). |
+| `Start_App.cmd` | Windows launcher: runs the Electron app, installing dependencies on first run. |
 | `config.example.json` | Template for the per-dealership `config.json` (placeholders only). |
 | `dashboard-preview.html` | Static preview of the status dashboard styling. |
 
