@@ -1,0 +1,29 @@
+{
+  "appId": "com.quantumconnect.autopost.flasher",
+  "productName": "AutoPost Pi Setup",
+  "asar": false,
+  "npmRebuild": false,
+  "extraMetadata": { "flasherBuild": true },
+  "files": [
+    "electron-main.js",
+    "flasher/**/*",
+    "!flasher/_test/**",
+    "build/icon.png",
+    "package.json"
+  ],
+  "extraResources": [
+    { "from": "VA-FLASH-A-PI-CARD.md", "to": "VA-FLASH-A-PI-CARD.md" }
+  ],
+  "win": {
+    "target": ["nsis"],
+    "icon": "build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "shortcutName": "AutoPost Pi Setup"
+  },
+  "directories": { "output": "dist-flasher" }
+}

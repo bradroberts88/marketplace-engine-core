@@ -11,6 +11,7 @@ This is the first batch of material; more is on the way.
 |---|---|
 | `docs/` | Operational and reference documentation (see below). |
 | `bench/` | Bench tooling for programming Pi cards. |
+| `connector/` | The dealership desktop app (Electron tray app + tunnel agent). |
 
 ### docs/
 
@@ -20,6 +21,8 @@ This is the first batch of material; more is on the way.
 | `read-me-first.txt` | Short instructions shipped alongside the setup bundle, plus build notes. |
 | `va-flash-a-pi-card.md` | Click-by-click guide for flashing a dealership setup card. |
 | `wifi-rescue.md` | Field WiFi rescue: causes, fixes, and on-site procedure. |
+| `claim-onboarding.md` | Claim-code self-serve onboarding: identity store, claim endpoint, security model. |
+| `desktop-app-roadmap.md` | Desktop app roadmap to 1,000 clients: shipped work and prioritized phases. |
 
 ### bench/
 
@@ -27,6 +30,19 @@ This is the first batch of material; more is on the way.
 |---|---|
 | `START-HERE.bat` | Launcher: preflight checks, prerequisites, bench settings, starts the app. |
 | `bench-settings.example.cmd` | Template for bench settings. Copy to `bench-settings.cmd` and fill in. |
+
+### connector/
+
+| File | Purpose |
+|---|---|
+| `src/agent.js` | The connector agent: dials out to the control server over WSS, relays rep streams, heartbeat, remote config, auto-update with rollback. |
+| `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
+| `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
+| `config.example.json` | Template for the per-dealership `config.json` (placeholders only). |
+| `dashboard-preview.html` | Static preview of the status dashboard styling. |
+
+The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
+Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
 ### Required third-party tool
 

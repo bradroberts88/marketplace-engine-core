@@ -34,3 +34,8 @@ bench/bench-settings.cmd
 
 # Third-party installers (download from vendor, do not commit)
 *.exe
+
+# Connector app — local identity/config (never commit)
+connector/config.json
+connector/dealerships.json
+connector/dealerships.json.*
