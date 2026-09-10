@@ -11,6 +11,7 @@ This is the first batch of material; more is on the way.
 |---|---|
 | `docs/` | Operational and reference documentation (see below). |
 | `bench/` | Bench tooling for programming Pi cards. |
+| `connector/` | The dealership desktop app (Electron tray app + tunnel agent). |
 
 ### docs/
 
@@ -20,6 +21,8 @@ This is the first batch of material; more is on the way.
 | `read-me-first.txt` | Short instructions shipped alongside the setup bundle, plus build notes. |
 | `va-flash-a-pi-card.md` | Click-by-click guide for flashing a dealership setup card. |
 | `wifi-rescue.md` | Field WiFi rescue: causes, fixes, and on-site procedure. |
+| `claim-onboarding.md` | Claim-code self-serve onboarding: identity store, claim endpoint, security model. |
+| `desktop-app-roadmap.md` | Desktop app roadmap to 1,000 clients: shipped work and prioritized phases. |
 
 ### bench/
 
