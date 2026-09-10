@@ -43,6 +43,10 @@ This is the first batch of material; more is on the way.
 | `src/claim.js` | First-run self-provisioning client: redeems a one-time setup code and writes `config.json` durably. |
 | `src/dashboard.js` | Local 127.0.0.1 status dashboard: tunnel health, public IP/geo/latency probe, rep list. |
 | `src/tunnel.js` | Data-plane egress with the LAN-isolation guard (blocks private/loopback/link-local/CGNAT, IPv4 + IPv6, fail closed). |
+| `src/wifi-recovery.js` | On-device WiFi rescue daemon (`autopost-wifi-recovery.service`): raises an "AutoPost-Setup" access point with a captive setup page when a unit is stranded on wrong WiFi credentials. |
+| `src/_test/planned-refresh.test.js` | Guards the pre-cap link-refresh gate (the 2026-08-17 mid-session cuts). |
+| `src/_test/config-resilience.test.js` | Guards the zero-length `config.json` deadlock fixes (the 2026-08-30 field failure). |
+| `src/_test/wifi-recovery.test.js` | Unit tests for the WiFi-recovery helpers and its single-radio, never-strand state machine. |
 | `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
 | `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
 | `firstrun-ui.js` | First-run setup screen: redeems a one-time setup code against the claim endpoint and writes `config.json`. |
@@ -58,11 +62,12 @@ This is the first batch of material; more is on the way.
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
-### deploy/pi/
+Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
+Current state: `planned-refresh` 13/13 and `wifi-recovery` 87/87 pass. `config-resilience`
+passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-connector.service`
+and `autopost-claim.service`, which have not been added to the repository yet.
 
-| File | Purpose |
-|---|---|
-| `wifi-recovery.js` | On-device WiFi rescue daemon (`autopost-wifi-recovery.service`): raises an "AutoPost-Setup" access point with a captive setup page when a Pi is stranded on wrong WiFi credentials. |
+
 
 ### Required third-party tool
 
