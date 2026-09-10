@@ -105,6 +105,16 @@ This is the first batch of material; more is on the way.
 | `server/config.example.json` | Template for the server `config.json`: control/proxy/admin/claim ports, allow-lists, claim-code onboarding (placeholders only). |
 | `server/test-claim-flow.js` | End-to-end claim-code test on loopback: create, claim, connect, every rejection path, token rotate/revoke force-disconnect. |
 | `server/.gitignore` | Keeps the server's `node_modules/`, `config.json` and logs out of the repository. |
+| `deploy/pi/README.md` | The Raspberry Pi tunnel device: hardware to buy, imaging, provisioning and remote access. |
+| `deploy/pi/install.sh` | One-shot Pi installer: Node 18+ (armhf via unofficial builds), the connector, the systemd service, Tailscale, CRLF guard. |
+| `deploy/pi/set-wifi.sh` | Add, list, remove or prefer WiFi networks; several saved at once so the box fails over to a hotspot. |
+| `deploy/pi/selftest.sh` | Pre-ship burn-in and defect gate run on the Pi: power, RAM, card, thermals, network, connector. Exit 0 = ship. |
+| `deploy/pi/pi-verify.sh` | Bench acceptance test over the USB link; one machine-readable line per check plus a PASS/FAIL verdict. |
+| `deploy/pi/GOLDEN-IMAGE-SPEC.md` | The separate `AUTOPOST-DATA` partition spec that stops overlay eviction from bricking a shipped device. |
+| `deploy/pi/PI-SETUP-GUIDE.md` | Flash-to-Live setup walkthrough, repeatable per dealership. |
+| `deploy/pi/PI-SHIP-TEST-PLAN.md` | The 10-stage ship-certification plan; a device is only certified after Stage 10. |
+| `deploy/pi/PI-SHIP-RISK-REGISTER.md` | The deep-analysis findings, burn-in gate table and field telemetry list. |
+| `deploy/pi/PROVISIONING-GUIDE.md` | The 10-minute VA guide for turning a blank Pi and a dealership into a ready-to-ship box. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
