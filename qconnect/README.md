@@ -52,6 +52,22 @@ Two things the review calls out that software cannot fix for you, both in `docs/
 create Tailscale keys as `tag:qconnect` with a 90-day expiry and ACLs that cage those nodes, and
 rotate the batch key when a device is reported stolen.
 
+## Verified
+
+`supabase/_test/run-local-tests.sh` runs all four files against a throwaway local Postgres — twice
+each, to prove they can be re-run safely — then a 12-check smoke test. Last run: all 12 passed.
+
+- token stored only as a fingerprint, plaintext column empty
+- wrong token rejected; unknown device rejected
+- correct token registers and heartbeats
+- non-admin blocked from the kill switch
+- fleet and offline views return nothing to an unscoped user, everything to an admin
+- kill switch writes an audit row with the actor's email
+- a disabled box is told `enabled=false` on its next check-in
+- a bench run seeds all 29 steps; open or failed steps give `no_go`, a clean sweep gives `go`
+
+The card-side scripts pass a syntax check unchanged; they were not modified.
+
 ## Not yet done
 
 No card has been through the bench test — the checklist is recorded, not passed. Phases 1, 2 and 4
