@@ -52,6 +52,9 @@ and trusted (it's a real business). See the decision doc: `../../.claude/plans/h
 - `src/tunnel.js`  — the data-plane: open/relay TCP streams to public targets (LAN-isolation guard).
 - `config.example.json` — copy to `config.json` and fill in the VPS URL + dealership token.
 - `package.json`   — isolated deps (no link to ../production).
+- `install/install-connector.ps1` — admin PowerShell installer: registers the `DealershipConnector` scheduled task (at boot, hidden, SYSTEM, restart-on-failure). Requires Node.js LTS installed for all users and a filled-in `config.json`.
+- `install/run-agent.cmd` — supervisor loop the task launches; relaunches `src/agent.js` 5s after any exit.
+- `install/uninstall-connector.ps1` — removes the task and stops any running agent.
 
 ## Run (dev, once implemented)
 ```
