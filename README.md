@@ -153,7 +153,9 @@ The golden-image kit is a recipe, not a built artifact: nothing in it has been r
 pi-gen or certified on hardware yet. `customize-stock-image.sh` is the real shipping path.
 The pi-gen route is stale on purpose — its chroot script exits with an error unless
 `ALLOW_STALE_PIGEN_STAGE=1` is set, because it would build an image with no WiFi or Bluetooth
-rescue, and its second stage folder `stage-autopost/01-data-and-overlay/` has not been added.
+rescue. The second stage folder `stage-autopost/01-data-and-overlay/` is now present; it must
+run after every other image change, since the overlay has to be baked last.
+
 
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
 Current state: `planned-refresh` 13/13, `wifi-recovery` 87/87 and `config-resilience` 8/8 pass
