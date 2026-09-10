@@ -1,0 +1,61 @@
+{
+  "name": "dealership-connector",
+  "productName": "AutoPost",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dealership Connector — desktop app + background agent that routes a dealership's FB sessions out through its own IP.",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "node src/agent.js",
+    "preview": "node preview-ui.js",
+    "app": "electron .",
+    "flasher": "electron . --flasher",
+    "flasher:test": "node flasher/_test/safety.test.js && node flasher/_test/inject.test.js && node flasher/_test/pi-model.test.js && node flasher/_test/batch.test.js && node flasher/_test/ui-batch.test.js",
+    "dist": "electron-builder --win",
+    "dist:flasher": "electron-builder --win --x64 --config electron-builder-flasher.json"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  },
+  "//flasher": "The flasher WRITE ENGINE is Raspberry Pi Imager (rpi-imager.exe) — an external native app, install: winget install RaspberryPiFoundation.RaspberryPiImager (or set RPI_IMAGER). We do NOT use etcher-sdk/@ronomon/direct-io: their O_DIRECT external buffers are blocked by Electron 32's V8 sandbox and buffered-IO verify is untrustworthy. The only native npm deps the flasher needs are drivelist (drive enumeration; N-API, loads under Electron) and @vscode/sudo-prompt (elevation). After npm install run: npx electron-rebuild -f -w drivelist. Pure modules (flasher/safety.js, flasher/inject.js) + their tests need none of these.",
+  "optionalDependencies": {
+    "@vscode/sudo-prompt": "^9.3.1",
+    "drivelist": "^12.0.2"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.0.2",
+    "electron": "^32.2.7",
+    "electron-builder": "^25.1.8"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "build": {
+    "appId": "com.quantumconnect.autopost",
+    "productName": "AutoPost",
+    "asar": false,
+    "files": [
+      "electron-main.js",
+      "preview-ui.js",
+      "firstrun-ui.js",
+      "src/**/*",
+      "supervisor/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "AutoPost",
+      "include": "build/installer.nsh"
+    }
+  }
+}
