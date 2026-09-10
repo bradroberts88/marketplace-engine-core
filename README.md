@@ -115,6 +115,16 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/PI-SHIP-TEST-PLAN.md` | The 10-stage ship-certification plan; a device is only certified after Stage 10. |
 | `deploy/pi/PI-SHIP-RISK-REGISTER.md` | The deep-analysis findings, burn-in gate table and field telemetry list. |
 | `deploy/pi/PROVISIONING-GUIDE.md` | The 10-minute VA guide for turning a blank Pi and a dealership into a ready-to-ship box. |
+| `deploy/pi/USB-SSH.cmd` | Double-click entry point: elevates, brings up the USB link and drops into a shell on the Pi. |
+| `deploy/pi/usb-ssh-connect.ps1` | The PC half of USB SSH: finds the gadget adapter by pinned MAC, sets `10.55.0.2/24` with no gateway, then hands over to ssh. |
+| `deploy/pi/VERIFY-PI.cmd` | Bench acceptance launcher run on every unit before boxing; supports `--ap`, `--ssid` and CSV logging. |
+| `deploy/pi/verify-pi.ps1` | Runs `pi-verify.sh` on the Pi over the USB link and prints one PASS/FAIL verdict; needs an SSH key. |
+| `deploy/pi/USB-SSH-TESTING.md` | Why USB SSH exists (a reflash costs 45 minutes), the pinned addressing and what lands on the card. |
+| `deploy/pi/WIFI-RESCUE.md` | The five field defects behind "the setup network never appears", the fixes, and the three ways into a unit that will not join. |
+| `deploy/pi/autopost-ble-setup.py` | The Bluetooth rescue door: a GATT service a technician writes WiFi credentials to; never touches `nmcli` itself. |
+| `deploy/pi/autopost-ble-setup.service` | Unit for the BLE rescue: unprivileged, no network or claim gating, so it runs on a box that never got online. |
+| `deploy/pi/50-autopost-nm.rules` | Polkit rule granting the `autopost` user NetworkManager actions only, so "Set WiFi" works without root. |
+| `deploy/pi/60-autopost-bluez.conf` | D-Bus policy naming the `autopost` user for BlueZ access, independent of the distro's `bluetooth` group stanza. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
