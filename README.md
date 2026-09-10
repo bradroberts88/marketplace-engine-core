@@ -126,13 +126,13 @@ Note: no `.sig` files are kept here — the one received was marked stale/do-not
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
 Current state: `planned-refresh` 13/13 and `wifi-recovery` 87/87 pass. `config-resilience`
 passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-connector.service`
-and `autopost-claim.service`, which have not been added to the repository yet.
+and `autopost-claim.service`, the two systemd units, which have not been added yet.
 
 The flasher tests run the same way (`node flasher/_test/<name>.test.js`). Current state:
-`safety` 16/16, `inject` 49/49, `nowifi` 10/10, `confirm-batch` 10/10, `sha512crypt` 14/14
-and `ui-batch` 35/35 pass with no dependencies. `batch` and `pi-model` need Electron
-installed (they load `main-flasher.js`, which requires `electron`). `ssh-hardening` needs
-`connector/deploy/pi/install.sh`, which has not been added yet. `electron-load-test.js`,
+`safety` 16/16, `inject` 49/49, `nowifi` 10/10, `confirm-batch` 10/10, `sha512crypt` 14/14,
+`ui-batch` 35/35 and `ssh-hardening` 12/12 pass with no dependencies. `batch` and `pi-model`
+need Electron installed (they load `main-flasher.js`, which requires `electron`).
+`electron-load-test.js`,
 `build-plan.js`, `do-inject.js`, `path-mangle-test.js`, `write-probe.js` and
 `write-proof.js` are bench helpers that need real hardware or a flashed card.
 
