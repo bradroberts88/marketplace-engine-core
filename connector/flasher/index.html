@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AutoPost — Set up a Pi</title>
+<style>
+  :root{
+    --bg:#0f1330; --panel:#171c42; --panel2:#1e2450; --ink:#eef1ff; --muted:#9aa3d4;
+    --line:#2c3468; --accent:#5b8cff; --good:#37d19a; --warn:#ffb454; --bad:#ff6b7d;
+    --radius:12px; --mono:'Consolas','SF Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+  header{padding:18px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  header .dot{width:11px;height:11px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good)}
+  header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+  header .sub{color:var(--muted);font-size:13px;margin-left:auto}
+  main{max-width:1000px;margin:0 auto;padding:22px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin:0 0 16px}
+  .step h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px;text-transform:uppercase;letter-spacing:.4px}
+  input[type=text],input[type=password],select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:10px 12px;font-size:14px;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  input.fleet{border-color:rgba(55,209,154,.45);background:rgba(55,209,154,.06)}
+  .row{display:flex;gap:14px}.row>div{flex:1}
+  .mt{margin-top:12px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:13px;text-transform:none;letter-spacing:0;margin-top:10px;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:10px 16px;font-weight:600}
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.danger{background:var(--bad);border-color:var(--bad);color:#1a0308}
+  button.small{padding:6px 11px;font-size:12px;font-weight:600}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(55,209,154,.16);color:#9df0d0;font-weight:600;letter-spacing:.3px}
+  .chip.blue{background:rgba(91,140,255,.16);color:#bcd0ff}
+  .chip.grey{background:rgba(154,163,212,.14);color:var(--muted)}
+  .chip.red{background:rgba(255,107,125,.16);color:#ffc9d0}
+  .chip.warn{background:rgba(255,180,84,.16);color:#ffb454}
+  .empty{color:var(--muted);font-size:13px;padding:14px;text-align:center;border:1px dashed var(--line);border-radius:9px}
+  .toggle{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 14px}
+  .toggle b{color:var(--good)}
+  .files pre{background:#0b0f28;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font:12px/1.5 var(--mono);color:#cdd6ff;white-space:pre-wrap;word-break:break-word}
+  .files .fname{font:12px var(--mono);color:var(--accent);margin:12px 0 4px}
+  .bar{height:8px;background:#0b0f28;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));transition:width .25s}
+  .bar.err>i{background:var(--bad)}
+  .msg{margin-top:12px;padding:10px 13px;border-radius:8px;font-size:13px;display:none}
+  .msg.show{display:block}
+  .msg.ok{background:rgba(55,209,154,.12);border:1px solid var(--good);color:#b6f2da}
+  .msg.err{background:rgba(255,107,125,.12);border:1px solid var(--bad);color:#ffc9d0}
+  .actions{display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap}
+  .flex-sp{margin-left:auto}
+
+  /* ---- card lanes: each one is a COMPLETE independent job (own dealership, own WiFi, own code) ---- */
+  .lane{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:13px 15px;margin-top:12px}
+  .lane.sel{border-color:var(--accent)}
+  .lane.writing{border-color:var(--accent);box-shadow:0 0 0 1px rgba(91,140,255,.35) inset}
+  .lane.done{border-color:var(--good);box-shadow:0 0 0 1px rgba(55,209,154,.35) inset}
+  .lane.error{border-color:var(--bad);box-shadow:0 0 0 1px rgba(255,107,125,.35) inset}
+  .lane .top{display:flex;align-items:center;gap:11px}
+  .lane .who{min-width:0;flex:1}
+  .lane .who .name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lane .who .cap{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .lrow{display:flex;gap:12px;margin-top:11px}
+  .lrow>div{flex:1;min-width:0}
+  .lrow label{font-size:11px;margin-bottom:4px}
+  .lrow input,.lrow select{padding:8px 11px;font-size:13.5px}
+  .lane-form{border-top:1px solid var(--line);margin-top:11px;padding-top:2px}
+  .lane .code-in{font-family:var(--mono);letter-spacing:.6px;text-transform:uppercase}
+  .lane .st{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:8px;min-height:16px}
+  .lane .st.err{color:var(--bad);font-family:inherit}
+  .lane .st.ok{color:var(--good)}
+  .lane .side{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+  .lane .side .chk{margin-top:0}
+  .doneopts{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot"></span>
+  <h1>AutoPost &mdash; Set up a Pi</h1>
+  <span class="sub" id="mode">Dealership connector card writer</span>
+</header>
+<main>
+
+  <section class="step">
+    <h2><span class="num">1</span> Settings shared by every card</h2>
+    <div class="row">
+      <div><label>Pi login user (support access)</label><input type="text" id="piUser" value="admin" spellcheck="false" /></div>
+      <div>
+        <label>Pi login password <span class="chip" id="passChip" style="display:none">fleet default</span></label>
+        <input type="password" id="piPass" placeholder="password for console / SSH support" />
+      </div>
+      <div><label>WiFi country</label>
+        <select id="country">
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mt">
+      <div>
+        <label>SSH public key for USB access <span class="chip" id="keyChip" style="display:none">fleet default &mdash; already filled in</span></label>
+        <input type="text" id="devSshPubKey" placeholder="ssh-ed25519 AAAA…  — paste to log in with no password" spellcheck="false" />
+      </div>
+    </div>
+    <div class="row mt">
+      <div>
+        <label>How these Pis get online</label>
+        <select id="networkMode">
+          <option value="wifi">WiFi &mdash; the dealership's wireless network</option>
+          <option value="wired">Wired &mdash; USB ethernet adapter on the Pi's USB port</option>
+        </select>
+      </div>
+    </div>
+    <div class="toggle mt" id="wiredNote" style="display:none">
+      <span class="hint">Wired cards carry <b>no WiFi at all</b> &mdash; nothing to mistype, so they cannot arrive with the wrong password. They reach the network through a USB&#8209;ethernet adapter in the Pi's <b>USB</b> port (not PWR IN), and are reachable for service at <b>10.55.0.1</b> by running a cable from that adapter straight to a laptop. The WiFi setup network and Bluetooth still work as a rescue if the cable is dead.</span>
+    </div>
+    <div class="toggle mt" id="usbRow">
+      <label class="chk" style="margin:0"><input type="checkbox" id="usbGadget" checked /> <b>USB SSH</b> &mdash; reach these Pis over the USB cable</label>
+      <span class="hint flex-sp">Card comes up as a USB network adapter at <b>10.55.0.1</b> with SSH on.</span>
+    </div>
+    <div class="row mt">
+      <div>
+        <label>Default timezone for new cards</label>
+        <select id="tzDefault">
+          <option value="America/New_York">Eastern US (New York)</option>
+          <option value="America/Toronto">Eastern Canada (Toronto)</option>
+          <option value="America/Chicago">Central US (Chicago)</option>
+          <option value="America/Denver">Mountain US (Denver)</option>
+          <option value="America/Phoenix">Arizona, no DST (Phoenix)</option>
+          <option value="America/Los_Angeles">Pacific US (Los Angeles)</option>
+          <option value="America/Anchorage">Alaska (Anchorage)</option>
+          <option value="Pacific/Honolulu">Hawaii (Honolulu)</option>
+        </select>
+        <div class="hint">Each card has its own timezone below &mdash; this just sets what a new card starts on.</div>
+      </div>
+      <div>
+        <label>Pi hardware</label>
+        <select id="piModel">
+          <option value="zerow">Raspberry Pi Zero W — original, 512MB (32-bit)</option>
+          <option value="pi4">Raspberry Pi 4 / Zero 2 W (64-bit)</option>
+        </select>
+        <div class="hint" id="modelHint"></div>
+      </div>
+    </div>
+    <div class="hint" id="usbHint"></div>
+    <div class="hint" id="benchHint"></div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">2</span> Cards <span class="chip blue" id="laneCount">0 ready</span></h2>
+    <div class="actions">
+      <button id="scan">Scan for cards</button>
+      <button id="selNone" class="small">Untick all</button>
+      <button id="clearAll" class="small">Clear all fields</button>
+      <span class="hint" id="scanHint">Only removable cards appear here. Your PC drive can never be selected.</span>
+    </div>
+    <div id="drives" class="mt"></div>
+    <div class="hint mt" id="concurrencyHint"></div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">3</span> Write the cards</h2>
+    <div class="toggle">
+      <label class="chk" style="margin:0"><input type="checkbox" id="dry" checked /> <b>Dry run</b> &mdash; render everything, write NOTHING</label>
+      <span class="hint flex-sp">Leave this ON to preview. Turn OFF only when you are ready to erase the cards.</span>
+    </div>
+    <div class="actions mt">
+      <button class="primary" id="preview">Preview (dry run)</button>
+      <button class="danger" id="go" disabled>Erase + Flash</button>
+      <span class="hint" id="goHint"></span>
+    </div>
+    <div class="msg" id="msg"></div>
+    <div class="files" id="files"></div>
+  </section>
+
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const TZ = [
+    ['America/New_York','Eastern US (New York)'],['America/Toronto','Eastern Canada (Toronto)'],
+    ['America/Chicago','Central US (Chicago)'],['America/Denver','Mountain US (Denver)'],
+    ['America/Phoenix','Arizona, no DST (Phoenix)'],['America/Los_Angeles','Pacific US (Los Angeles)'],
+    ['America/Anchorage','Alaska (Anchorage)'],['Pacific/Honolulu','Hawaii (Honolulu)'],
+  ];
+
+  // ---------------------------------------------------------------------------------------------------------
+  // LANES. One per SD card in a reader, and each one is a COMPLETE, INDEPENDENT job: its own dealership, its own
+  // WiFi, its own one-time setup code, its own timezone. Nothing about one card's dealership leaks into another.
+  // Several write at the same time, so a batch of cards for different dealerships costs one wait, not N waits.
+  //
+  // Only genuinely fleet-wide things (Pi login, SSH key, USB SSH, hardware model, WiFi country) live above.
+  //
+  // Lane rows are built ONCE per scan and mutated in place afterwards. Rebuilding the DOM on a progress tick
+  // would yank focus out of whichever field the operator is typing into while other lanes are still writing.
+  // ---------------------------------------------------------------------------------------------------------
+  let lanes = [];
+  let jobSeq = 0;
+  const laneByJob = new Map();
+  const busy = () => lanes.some((l) => l.status === 'writing');
+  const LANE_FIELDS = ['dealership','code','ssid','pass','ssid2','pass2','tz'];
+
+  function blankLane(d){
+    return {
+      raw: d.raw, drive: d, include: false,
+      dealership: '', code: '', ssid: '', pass: '', ssid2: '', pass2: '', hidden: false, noWifi: false,
+      tz: $('tzDefault').value,
+      status: 'idle', pct: 0, stage: '', msg: '', jobId: null, el: null, showMore: false,
+    };
+  }
+
+  function laneCodeOk(l){ return /^[0-9A-Za-z-]{8,9}$/.test(String(l.code || '').replace(/\s/g, '')); }
+  // A no-WiFi card is complete WITHOUT an SSID: that is the whole point of the mode. Everything else on the
+  // card (setup code, password, keys) is still required, so laneReady's other checks are unchanged.
+  // Wired cards satisfy this by construction: they carry no WiFi on purpose, exactly like a no-WiFi card.
+  // Without this the lane never becomes ready and the Flash button stays dead with nothing explaining why.
+  function laneWifiOk(l){ return wiredMode() || !!l.noWifi || !!String(l.ssid || '').trim(); }
+  function wiredMode(){ const el = $('networkMode'); return !!el && el.value === 'wired'; }
+  // Grey out the WiFi inputs when the card is set to capture on first boot, so the form shows what will actually
+  // be written. Guarded on l.el because paint can run before the row's DOM exists.
+  function applyNoWifi(l){
+    if(!l.el) return;
+    const off = !!l.noWifi || wiredMode();
+    ['ssid','pass','ssid2','pass2'].forEach((f) => {
+      const el = l.el[f]; if(!el) return;
+      el.disabled = off; el.style.opacity = off ? 0.45 : '';
+      el.placeholder = off ? (wiredMode() ? 'not used — this card is wired' : 'set on the Pi at first boot') : (el.dataset.ph || el.placeholder);
+    });
+    if(l.el.hidden){ l.el.hidden.disabled = off; }
+    if(l.el.moreBtn){ l.el.moreBtn.disabled = off; l.el.moreBtn.style.opacity = off ? 0.45 : ''; }
+  }
+  function laneReady(l){ return l.include && laneCodeOk(l) && laneWifiOk(l) && l.status !== 'writing' && l.status !== 'done'; }
+
+  // The plan for ONE card. Per-card values come from the lane; only fleet-wide settings come from the top.
+  function readForm(lane){
+    return {
+      dealership: (lane && lane.dealership.trim()) || null,
+      claimCode: lane ? lane.code : '',
+      noWifi: !!(lane && lane.noWifi),
+      primary: { ssid: lane ? lane.ssid.trim() : '', pass: lane ? lane.pass : '', hidden: !!(lane && lane.hidden) },
+      backup:  { ssid: lane ? lane.ssid2.trim() : '', pass: lane ? lane.pass2 : '' },
+      tz: (lane && lane.tz) || $('tzDefault').value,
+      country: $('country').value.trim() || 'US',
+      piUser: $('piUser').value.trim() || 'admin',
+      // A field still holding the fleet sentinel means "operator did not type one" -> send empty so the main
+      // process applies AUTOPOST_PI_PASS. Never ship the sentinel bullets as if they were a real password.
+      piPass: $('piPass').dataset.fleet === '1' ? '' : $('piPass').value,
+      piModel: $('piModel').value,
+      networkMode: $('networkMode').value,
+      usbGadget: $('usbGadget').checked,
+      devSshPubKey: $('devSshPubKey').value.trim(),
+      target: lane ? lane.drive : null,
+    };
+  }
+
+  let fleet = { hasFleetKey:false, fleetKeyLabel:'', fleetKey:'', hasFleetPass:false, fleetPassWeak:false,
+                benchSsid:'', usbGadgetForcedOff:false, defaultNetworkMode:'wifi', defaultPiModel:'zerow', elevated:false };
+
+  async function loadFleetDefaults(){
+    try { fleet = Object.assign(fleet, (await window.flasher.fleetDefaults()) || {}); } catch(_){}
+    // SSH KEY: fill the box in for real. It is a PUBLIC key, so showing it is harmless, and a visibly-filled
+    // field is the only version of "it's handled" an operator actually trusts.
+    if(fleet.fleetKey){
+      $('devSshPubKey').value = fleet.fleetKey;
+      $('devSshPubKey').classList.add('fleet');
+      $('keyChip').style.display = '';
+      $('keyChip').textContent = 'fleet default' + (fleet.fleetKeyLabel ? ' — ' + fleet.fleetKeyLabel : '');
+    }
+    // PASSWORD: show a filled field WITHOUT the renderer ever holding the secret. The sentinel is stripped in
+    // readForm(), and clicking the field clears it so a per-batch override is still one keystroke away.
+    if(fleet.hasFleetPass){
+      $('piPass').value = '•'.repeat(16);
+      $('piPass').dataset.fleet = '1';
+      $('piPass').classList.add('fleet');
+      $('passChip').style.display = '';
+    }
+    if(fleet.defaultPiModel && $('piModel').querySelector('option[value="'+fleet.defaultPiModel+'"]')){
+      $('piModel').value = fleet.defaultPiModel;
+    }
+    if(fleet.usbGadgetForcedOff){ $('usbGadget').checked = false; $('usbGadget').disabled = true; }
+    if(fleet.defaultNetworkMode === 'wired'){ $('networkMode').value = 'wired'; }
+    refreshNetworkMode();
+    $('concurrencyHint').textContent = fleet.elevated
+      ? 'Fill in as many cards as you have readers and hit Flash once — they all write at the same time, each with its own dealership, WiFi and code.'
+      : '⚠ The app is not running as Administrator (launch it with START-HERE.cmd). Cards will still write, but each one pops its own Windows permission prompt and they cannot overlap.';
+    $('concurrencyHint').style.color = fleet.elevated ? 'var(--muted)' : 'var(--warn)';
+    refreshModelHint();
+    refreshUsbHint();
+    refreshBenchHint();
+  }
+
+  function wireFleetField(id){
+    $(id).addEventListener('focus', () => {
+      const el = $(id);
+      if(el.dataset.fleet === '1' || (id === 'devSshPubKey' && el.classList.contains('fleet'))){
+        el.value = ''; delete el.dataset.fleet; el.classList.remove('fleet');
+        if(id === 'piPass') $('passChip').style.display = 'none';
+        if(id === 'devSshPubKey') $('keyChip').style.display = 'none';
+        refreshUsbHint();
+      }
+    });
+  }
+
+  function refreshBenchHint(){
+    const b = $('benchHint');
+    if(!b) return;
+    b.style.color = 'var(--muted)';
+    b.textContent = fleet.benchSsid
+      ? 'Bench network “'+fleet.benchSsid+'” is added to every card as the lowest-priority backup, so it can claim here before it ships.'
+      : 'No bench network configured — set AUTOPOST_BENCH_SSID in START-HERE.cmd so cards can claim at your desk before shipping.';
+  }
+
+  // Wired and the USB gadget are two uses of ONE physical port, so the UI must never present them as
+  // independent choices — offering a checkbox that silently does nothing is how an operator ends up believing a
+  // card has a service path it does not have.
+  function refreshNetworkMode(){
+    const wired = $('networkMode').value === 'wired';
+    $('wiredNote').style.display = wired ? '' : 'none';
+    $('usbRow').style.display = wired ? 'none' : '';
+    // The WiFi fields live per LANE, not as top-level inputs, so this goes through the lanes' own paint path —
+    // which is also what re-evaluates whether each lane is ready to flash.
+    lanes.forEach(function(l){ if(wired) l.noWifi = false; applyNoWifi(l); paintLane(l); });
+    refreshUsbHint();
+  }
+
+  function refreshUsbHint(){
+    const h = $('usbHint');
+    if($('networkMode').value === 'wired'){
+      const typedPassW = $('piPass').dataset.fleet !== '1' && !!$('piPass').value;
+      const hasCredW = !!(typedPassW || $('devSshPubKey').value.trim() || fleet.hasFleetKey || fleet.hasFleetPass);
+      if(!hasCredW){ h.textContent = '⚠ Wired cards are reached by SSH, but this card has no password and no SSH key — you would reach the Pi and be unable to log in.'; h.style.color='var(--bad)'; }
+      else { h.textContent = 'Wired — the Pi takes DHCP from the dealership network, and also answers at 10.55.0.1 for service.'; h.style.color='var(--muted)'; }
+      return;
+    }
+    if(!$('usbGadget').checked){ h.textContent = 'USB SSH off — these cards can only be reached over WiFi/Tailscale.'; h.style.color='var(--muted)'; return; }
+    const typedPass = $('piPass').dataset.fleet !== '1' && !!$('piPass').value;
+    const hasCred = !!(typedPass || $('devSshPubKey').value.trim() || fleet.hasFleetKey || fleet.hasFleetPass);
+    if(!hasCred){ h.textContent = '⚠ USB SSH is on but there is no password and no SSH key — you would reach the Pi and be unable to log in. Set a password above, or paste a public key.'; h.style.color='var(--bad)'; }
+    else if(fleet.fleetPassWeak && !typedPass){
+      h.textContent = '⚠ The fleet password in START-HERE.cmd is under 12 characters. sshd is reachable on the dealership LAN — use a longer one.'; h.style.color='var(--bad)';
+    }
+    else {
+      const via = $('devSshPubKey').value.trim() ? ($('devSshPubKey').classList.contains('fleet') ? 'fleet key' : 'key from this form')
+                : (typedPass ? 'password from this form' : (fleet.hasFleetKey ? 'fleet key' : 'fleet password'));
+      h.textContent = 'After boot: plug a USB cable into the Pi’s DATA port and run  ssh '+($('piUser').value.trim()||'admin')+'@10.55.0.1    (auth: '+via+')';
+      h.style.color='var(--muted)';
+    }
+  }
+
+  async function refreshModelHint(){
+    const res = await window.flasher.resolveImage($('piModel').value);
+    const hint = $('modelHint');
+    if(!res){ hint.textContent=''; return; }
+    if(!res.exists){ hint.textContent = 'Image not found: '+res.imagePath+' — ask your admin to add it.'; hint.style.color='var(--bad)'; }
+    else { hint.textContent = res.label+'  ('+res.imagePath+')'; hint.style.color='var(--muted)'; }
+  }
+
+  function showMsg(kind, text){ const m=$('msg'); m.className='msg show '+kind; m.textContent=text; }
+  function clearMsg(){ $('msg').className='msg'; }
+
+  function refreshGate(){
+    const ready = lanes.filter(laneReady);
+    const dry = $('dry').checked;
+    const nBusy = lanes.filter((l) => l.status === 'writing').length;
+    // Deliberately NOT blocked while other lanes write: each lane is its own writer process against its own
+    // device, so a card filled in mid-batch can be started immediately instead of waiting for the batch to drain.
+    $('go').disabled = !(ready.length && !dry);
+    $('go').textContent = ready.length > 1 ? ('Erase + Flash ' + ready.length + ' cards') : 'Erase + Flash';
+    $('laneCount').textContent = lanes.length ? (ready.length + ' of ' + lanes.length + ' ready') : '0 ready';
+    const ticked = lanes.filter((l) => l.include && l.status !== 'done' && l.status !== 'writing');
+    const missing = ticked.filter((l) => !laneCodeOk(l) || !laneWifiOk(l)).length;
+    const busyNote = nBusy ? '  •  ' + nBusy + ' still writing.' : '';
+    $('goHint').textContent = (dry ? 'Turn Dry run OFF to enable flashing.'
+      : (!ready.length ? (nBusy ? 'Writing…' : (ticked.length ? 'Each ticked card needs a setup code and a WiFi network.' : 'Tick a card and fill it in.'))
+      : (missing ? ready.length + ' ready; ' + missing + ' ticked card' + (missing>1?'s are':' is') + ' still missing a code or WiFi.'
+      : 'Ready — this will ERASE ' + ready.length + ' card' + (ready.length>1?'s':'') + '.'))) + busyNote;
+  }
+
+  // ---- lane rendering -------------------------------------------------------------------------------------
+  function paintLane(l){
+    const e = l.el; if(!e) return;
+    const writing = l.status === 'writing';
+    e.root.className = 'lane' + (l.status !== 'idle' ? ' ' + l.status : (l.include ? ' sel' : ''));
+    e.bar.style.display = (l.status === 'idle') ? 'none' : '';
+    e.bar.className = 'bar' + (l.status === 'error' ? ' err' : '');
+    e.fill.style.width = Math.max(0, Math.min(100, l.pct || 0)) + '%';
+    e.st.className = 'st' + (l.status === 'error' ? ' err' : (l.status === 'done' ? ' ok' : ''));
+    e.st.textContent = l.msg || l.stage || '';
+    LANE_FIELDS.forEach((f) => { if(e[f]) e[f].disabled = writing; });
+    e.hidden.disabled = writing; e.inc.disabled = writing;
+    e.form.style.display = (l.status === 'done') ? 'none' : '';
+    e.doneopts.style.display = (l.status === 'done') ? '' : 'none';
+    e.more.style.display = l.showMore ? '' : 'none';
+    e.badge.textContent = writing ? 'writing' : l.status === 'done' ? '✓ done' : l.status === 'error' ? 'failed'
+      : (l.drive.isCard ? 'SD card' : (l.drive.isUSB ? 'USB' : 'removable'));
+    e.badge.className = 'chip ' + (l.status === 'done' ? '' : l.status === 'error' ? 'red' : writing ? 'blue' : 'grey');
+    // While a card writes (or after it is done) the row collapses to a one-line summary of WHAT was written to
+    // it — the operator needs to know which dealership this card belongs to when they pull it out of the reader.
+    e.summary.textContent = (writing || l.status === 'done')
+      ? [l.dealership || '(no name)', l.noWifi ? 'WiFi: set up on the Pi' : (l.ssid ? 'WiFi: ' + l.ssid : ''), l.code ? 'code ' + l.code : ''].filter(Boolean).join('  ·  ')
+      : '';
+  }
+
+  function tzSelectHtml(sel){
+    return '<select class="lane-tz">' + TZ.map(([v,t]) =>
+      '<option value="'+v+'"'+(v===sel?' selected':'')+'>'+t+'</option>').join('') + '</select>';
+  }
+
+  function renderLanes(){
+    const host = $('drives');
+    host.innerHTML = '';
+    if(!lanes.length){ host.innerHTML = '<div class="empty">No removable cards found. Insert one or more SD cards and scan again.</div>'; return; }
+    lanes.forEach((l, i) => {
+      const gb = (l.drive.size/1e9).toFixed(0);
+      const root = document.createElement('div'); root.className = 'lane';
+      root.innerHTML =
+        '<div class="top">'
+        +   '<input type="checkbox" class="lane-inc" style="width:16px;height:16px;accent-color:var(--accent);flex:none" />'
+        +   '<div class="who"><div class="name"></div><div class="cap"></div></div>'
+        +   '<span class="lane-summary" style="font-size:12px;color:var(--muted);text-align:right;max-width:46%"></span>'
+        +   '<span class="chip grey lane-badge"></span>'
+        + '</div>'
+        + '<div class="lane-form">'
+        +   '<div class="lrow">'
+        +     '<div><label>Dealership</label><input type="text" class="lane-dealership" placeholder="e.g. Merchant Auto" /></div>'
+        +     '<div><label>Setup code</label><input type="text" class="lane-code code-in" placeholder="K7QP-3M2R" autocomplete="off" spellcheck="false" maxlength="9" /></div>'
+        +   '</div>'
+        +   '<div class="lrow">'
+        +     '<div><label>WiFi network (SSID)</label><input type="text" class="lane-ssid" placeholder="Dealership-WiFi" spellcheck="false" /></div>'
+        +     '<div><label>WiFi password</label><input type="password" class="lane-pass" placeholder="••••••••" /></div>'
+        +   '</div>'
+        +   '<div class="lrow">'
+        +     '<div><label>Timezone</label>' + tzSelectHtml(l.tz) + '</div>'
+        +     '<div class="side">'
+        +       '<label class="chk"><input type="checkbox" class="lane-hidden" /> Hidden network</label>'
+        +       '<label class="chk" title="Ship with no WiFi. The Pi raises its own AutoPost-Setup network on first boot so someone on site can enter the dealership WiFi."><input type="checkbox" class="lane-nowifi" /> No WiFi yet — set up on the Pi</label>'
+        +       '<button type="button" class="small lane-more-btn">＋ Backup WiFi</button>'
+        +       (i > 0 ? '<button type="button" class="small lane-copy">Copy from card above</button>' : '')
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="lane-more" style="display:none"><div class="lrow">'
+        +     '<div><label>Backup network (optional)</label><input type="text" class="lane-ssid2" placeholder="Manager-Hotspot" spellcheck="false" /></div>'
+        +     '<div><label>Backup password</label><input type="password" class="lane-pass2" /></div>'
+        +   '</div></div>'
+        + '</div>'
+        + '<div class="doneopts" style="display:none">'
+        +   '<button type="button" class="small lane-again">Another card for this dealership</button>'
+        +   '<button type="button" class="small lane-fresh">Different dealership</button>'
+        + '</div>'
+        + '<div class="bar" style="display:none"><i></i></div>'
+        + '<div class="st"></div>';
+      root.querySelector('.name').textContent = l.drive.description || 'Removable card';
+      root.querySelector('.cap').textContent = gb + ' GB · ' + ((l.drive.mountpoints && l.drive.mountpoints.join(', ')) || 'no letter') + ' · ' + l.drive.raw;
+
+      const q = (c) => root.querySelector('.' + c);
+      l.el = {
+        root, inc: q('lane-inc'), badge: q('lane-badge'), summary: q('lane-summary'),
+        form: q('lane-form'), more: q('lane-more'), doneopts: q('doneopts'),
+        bar: q('bar'), fill: root.querySelector('.bar > i'), st: q('st'),
+        hidden: q('lane-hidden'), moreBtn: q('lane-more-btn'), copy: q('lane-copy'),
+        again: q('lane-again'), fresh: q('lane-fresh'),
+        dealership: q('lane-dealership'), code: q('lane-code'), ssid: q('lane-ssid'), noWifi: q('lane-nowifi'),
+        pass: q('lane-pass'), ssid2: q('lane-ssid2'), pass2: q('lane-pass2'), tz: q('lane-tz'),
+      };
+
+      // push current model values into the freshly-built DOM
+      LANE_FIELDS.forEach((f) => { if(l.el[f]) l.el[f].value = l[f] || ''; });
+      l.el.inc.checked = l.include;
+      l.el.hidden.checked = l.hidden;
+      if(l.el.noWifi) l.el.noWifi.checked = !!l.noWifi;
+      applyNoWifi(l);
+
+      // Any edit re-arms a finished/failed lane: typing into a row is the operator saying "this is a new card".
+      // The spent-code rule is the important half. A lane that WROTE successfully burned its one-time code at the
+      // hub, so re-arming it must drop that code — otherwise editing, say, the dealership on a finished row would
+      // leave the old code in place and the next card would ship with a code that can never claim. A lane that
+      // FAILED wrote nothing, so its code was never consumed and is kept for the retry.
+      const touch = (field) => {
+        if(l.status === 'done'){
+          if(field !== 'code'){ l.code = ''; if(l.el.code) l.el.code.value = ''; }
+        } else if(l.status !== 'error'){ return; }
+        l.status = 'idle'; l.pct = 0; l.msg = ''; l.stage = '';
+      };
+      LANE_FIELDS.forEach((f) => {
+        const el = l.el[f]; if(!el) return;
+        const ev = (f === 'tz') ? 'change' : 'input';
+        el.addEventListener(ev, () => {
+          l[f] = (f === 'code') ? el.value.trim().toUpperCase() : el.value;
+          if(f === 'code') el.value = l[f];
+          // filling in a code or an SSID means this card is part of the batch
+          if((f === 'code' || f === 'ssid') && l[f] && !l.include){ l.include = true; l.el.inc.checked = true; }
+          touch(f); paintLane(l); refreshGate();
+        });
+      });
+      l.el.hidden.addEventListener('change', () => { l.hidden = l.el.hidden.checked; touch(); paintLane(l); });
+      if(l.el.noWifi) l.el.noWifi.addEventListener('change', () => {
+        l.noWifi = l.el.noWifi.checked;
+        // Clear the WiFi fields rather than just greying them: a card must never carry credentials the operator
+        // believes were dropped, and leaving stale text behind is how that happens when the box is un-ticked and
+        // re-ticked. Ticking it also opts the row into the batch, same as typing a code or SSID.
+        if(l.noWifi){
+          ['ssid','pass','ssid2','pass2'].forEach((f) => { l[f] = ''; if(l.el[f]) l.el[f].value = ''; });
+          l.hidden = false; if(l.el.hidden) l.el.hidden.checked = false;
+          if(!l.include){ l.include = true; l.el.inc.checked = true; }
+        }
+        applyNoWifi(l); touch(); paintLane(l); refreshGate();
+      });
+      l.el.inc.addEventListener('change', () => { l.include = l.el.inc.checked; paintLane(l); refreshGate(); });
+      l.el.moreBtn.addEventListener('click', () => { l.showMore = !l.showMore; paintLane(l); });
+      if(l.el.copy) l.el.copy.addEventListener('click', () => copyFromAbove(l));
+      l.el.again.addEventListener('click', () => reuseLane(l, true));
+      l.el.fresh.addEventListener('click', () => reuseLane(l, false));
+
+      host.appendChild(root);
+      paintLane(l);
+    });
+  }
+
+  // Several cards for the SAME dealership is common, and retyping an SSID + password per card is both slow and a
+  // real source of typos. Copies everything EXCEPT the setup code, which must stay unique per card.
+  function copyFromAbove(l){
+    const i = lanes.indexOf(l);
+    if(i <= 0) return;
+    const src = lanes[i-1];
+    ['dealership','ssid','pass','ssid2','pass2','tz'].forEach((f) => { l[f] = src[f]; if(l.el[f]) l.el[f].value = src[f] || ''; });
+    l.hidden = src.hidden; l.el.hidden.checked = src.hidden;
+    l.noWifi = !!src.noWifi; if(l.el.noWifi) l.el.noWifi.checked = l.noWifi;
+    applyNoWifi(l);
+    l.showMore = l.showMore || !!(src.ssid2);
+    // same spent-code rule as an inline edit: a lane that already wrote must not carry its used code forward
+    if(l.status === 'done'){ l.code = ''; if(l.el.code) l.el.code.value = ''; }
+    if(l.status === 'done' || l.status === 'error'){ l.status = 'idle'; l.pct = 0; l.msg = ''; l.stage = ''; }
+    if(!l.include){ l.include = true; l.el.inc.checked = true; }
+    paintLane(l); refreshGate();
+    showMsg('ok', 'Copied the dealership and WiFi from the card above. Enter this card’s own setup code — codes are one-time and cannot be shared.');
+  }
+
+  // After a card is written the operator either does ANOTHER card for the same dealership, or moves on. Making
+  // that an explicit choice is the safety point: silently keeping the previous dealership's WiFi is how a card
+  // ships to the wrong site, and silently wiping it is how someone retypes the same details ten times.
+  function reuseLane(l, keepDealership){
+    l.status = 'idle'; l.pct = 0; l.stage = ''; l.msg = '';
+    l.code = ''; if(l.el.code) l.el.code.value = '';
+    if(!keepDealership){
+      ['dealership','ssid','pass','ssid2','pass2'].forEach((f) => { l[f] = ''; if(l.el[f]) l.el[f].value = ''; });
+      l.hidden = false; l.el.hidden.checked = false;
+      l.tz = $('tzDefault').value; if(l.el.tz) l.el.tz.value = l.tz;
+    }
+    l.include = false; l.el.inc.checked = false;
+    paintLane(l); refreshGate();
+  }
+
+  // Rescan WITHOUT losing work: lanes are matched by raw device path, so anything already typed survives, cards
+  // that were pulled disappear, and newly inserted cards arrive as fresh lanes. A lane that is mid-write is kept
+  // even if its card briefly vanishes from the scan.
+  async function scan(){
+    const res = await window.flasher.scanDrives();
+    if(!res || !res.ok){ $('drives').innerHTML = '<div class="empty">'+((res && res.reason) || 'scan failed')+'</div>'; return; }
+    const found = res.drives || [];
+    const writing = lanes.filter((l) => l.status === 'writing');
+    const next = found.map((d) => {
+      const prev = lanes.find((l) => l.raw === d.raw);
+      if(prev){ prev.drive = d; return prev; }
+      return blankLane(d);
+    });
+    writing.forEach((w) => { if(!next.some((l) => l.raw === w.raw)) next.push(w); });
+    lanes = next;
+    renderLanes();
+    refreshGate();
+  }
+
+  function renderFiles(files){
+    if(!files || !files.length){ $('files').innerHTML=''; return; }
+    $('files').innerHTML = '<div class="fname" style="color:var(--muted);margin-top:16px">Files that will be written to the card&rsquo;s boot partition:</div>'
+      + files.map(f => '<div class="fname">/boot/firmware/'+f.path+'</div><pre>'+escapeHtml(f.content)+'</pre>').join('');
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  function clearAll(){
+    if(busy()){ showMsg('err', 'Cards are still writing — wait for them to finish before clearing.'); return; }
+    lanes.forEach((l) => {
+      ['dealership','code','ssid','pass','ssid2','pass2'].forEach((f) => { l[f] = ''; if(l.el && l.el[f]) l.el[f].value = ''; });
+      l.noWifi = false; if(l.el && l.el.noWifi) l.el.noWifi.checked = false; applyNoWifi(l);
+      l.hidden = false; l.include = false; l.status = 'idle'; l.pct = 0; l.stage = ''; l.msg = '';
+      l.tz = $('tzDefault').value;
+    });
+    $('dry').checked = true;   // safety: the next batch requires a deliberate Dry-run OFF again
+    renderLanes(); clearMsg(); renderFiles(null); refreshGate();
+  }
+
+  $('preview').onclick = async () => {
+    clearMsg();
+    const l = lanes.find(laneReady) || lanes.find((x) => x.include) || lanes[0];
+    if(!l){ showMsg('err', 'No card to preview — insert a card and hit Scan.'); return; }
+    const res = await window.flasher.dryRun(readForm(l));
+    if(!res || !res.ok){ showMsg('err', (res && res.reason) || 'dry run failed'); renderFiles(null); return; }
+    const n = lanes.filter(laneReady).length;
+    showMsg('ok', 'Dry run OK — nothing was written. Showing ' + (l.dealership || l.drive.description || l.raw)
+      + (n > 1 ? '; the other ' + (n-1) + ' card' + (n-1>1?'s each get their':' gets its') + ' own dealership, WiFi and code.' : '.')
+      + ' Image: '+(res.imageIsGolden ? 'GOLDEN — ' : '⚠ NOT golden — ')+(res.imagePath||'')
+      + (res.usb ? (res.usb.warning ? '  •  ⚠ '+res.usb.warning : '  •  USB SSH: '+res.usb.ssh+' (auth: '+res.usb.auth+')') : ''));
+    renderFiles(res.files);
+  };
+
+  $('go').onclick = async () => {
+    clearMsg();
+    const ready = lanes.filter(laneReady);
+    if(!ready.length) return;
+    // One code may not be used twice — the hub burns it on first claim, so the second card would never claim and
+    // would ship dead. Checked against lanes ALREADY WRITING too, so a card filled in mid-run cannot reuse a code
+    // that is at this moment being written to another card.
+    const norm = (c) => String(c||'').replace(/[\s-]/g,'').toUpperCase();
+    const inFlight = lanes.filter((l) => l.status === 'writing').map((l) => norm(l.code)).filter(Boolean);
+    const codes = ready.map((l) => norm(l.code));
+    const dupe = codes.find((c, i) => codes.indexOf(c) !== i) || codes.find((c) => inFlight.includes(c));
+    if(dupe){ showMsg('err', 'Setup code '+dupe+' is entered on more than one card. Each card needs its own — a code is one-time, so the second Pi would never claim.'); return; }
+
+    const conf = await window.flasher.confirmBatch(ready.map((l) => ({
+      raw: l.raw,
+      noWifi: !!l.noWifi,
+      // The mode is one batch-level control, but sent per target so main can count them and so a future
+      // per-lane picker needs no protocol change. Without this, main had no way to know and read a
+      // nonexistent `form` instead.
+      networkMode: $('networkMode').value,
+      label: (l.dealership ? l.dealership + ' — ' : '') + (l.drive.label || l.drive.description || l.raw),
+    })));
+    if(!conf || !conf.ok){ if(conf && conf.reason && conf.reason !== 'cancelled') showMsg('err', conf.reason); return; }
+
+    ready.forEach((l) => startLane(l, conf.token));
+    refreshGate();
+    showMsg('ok', 'Writing ' + ready.length + ' card' + (ready.length>1?'s':'') + ' at once. You can fill in another card while these run.');
+  };
+
+  async function startLane(lane, token){
+    lane.status = 'writing'; lane.pct = 0; lane.stage = 'starting…'; lane.msg = '';
+    lane.jobId = 'job-' + (++jobSeq) + '-' + Date.now();
+    laneByJob.set(lane.jobId, lane);
+    paintLane(lane);
+
+    const form = readForm(lane);
+    form.jobId = lane.jobId;
+    form.confirmToken = token;
+    let res;
+    try { res = await window.flasher.flash(form); }
+    catch(e){ res = { ok:false, reason: (e && e.message) || 'flash failed' }; }
+
+    laneByJob.delete(lane.jobId);
+    if(!res || !res.ok){
+      lane.status = 'error'; lane.msg = (res && res.reason) || 'flash failed';
+    } else {
+      lane.status = 'done'; lane.pct = 100;
+      lane.msg = 'Written + verified — safe to eject' + (lane.dealership ? ' → ' + lane.dealership : '') + '.';
+      lane.include = false; if(lane.el) lane.el.inc.checked = false;
+      if(res.bootDir){
+        try { const v = await window.flasher.verifyCard(res.bootDir); if(v && v.ok) renderFiles(Object.entries(v.files).map(([path,content])=>({path,content}))); } catch(_){}
+      }
+    }
+    paintLane(lane);
+    refreshGate();
+    if(!busy()){
+      const done = lanes.filter((l) => l.status === 'done').length;
+      const bad  = lanes.filter((l) => l.status === 'error').length;
+      if(bad) showMsg('err', bad + ' card' + (bad>1?'s':'') + ' failed (see the red rows). ' + done + ' written OK.');
+      else showMsg('ok', done + ' card' + (done>1?'s':'') + ' written + verified. Swap in the next batch and hit Scan — no need to restart.');
+    }
+  }
+
+  // Progress arrives stamped with the jobId we sent, so N writers drive N bars independently.
+  window.flasher.onProgress((m) => {
+    const lane = m && m.jobId ? laneByJob.get(m.jobId) : null;
+    if(!lane){ if(m && m.type === 'error') showMsg('err', m.reason); return; }
+    if(m.type === 'progress' && typeof m.percentage === 'number'){
+      // writing fills 0-50%, verifying fills 50-100% -> one smooth climb, no reset between phases
+      const phase = m.phase === 'verifying' ? 'verifying' : 'writing';
+      const base = phase === 'verifying' ? 50 : 0;
+      lane.pct = Math.max(2, base + (Math.max(0,Math.min(100,m.percentage))/100)*50);
+      lane.stage = phase + ' ' + Math.round(m.percentage) + '%' + (m.synthetic ? '  (working…)' : '');
+    } else if(m.type === 'stage'){
+      lane.stage = m.stage;
+      if(/injecting/i.test(m.stage)) lane.pct = 93;
+      else if(/finalizing|confirming/i.test(m.stage)) lane.pct = 98;
+    } else if(m.type === 'error'){
+      lane.status = 'error'; lane.msg = m.reason;
+    }
+    paintLane(lane);
+  });
+
+  $('dry').addEventListener('change', refreshGate);
+  $('piModel').addEventListener('change', refreshModelHint);
+  ['piPass','devSshPubKey','piUser'].forEach(id => $(id).addEventListener('input', refreshUsbHint));
+  ['piPass','devSshPubKey'].forEach(wireFleetField);
+  $('usbGadget').addEventListener('change', refreshUsbHint);
+  $('networkMode').addEventListener('change', refreshNetworkMode);
+  $('scan').onclick = scan;
+  $('selNone').onclick = () => { lanes.forEach((l) => { if(l.status !== 'writing'){ l.include = false; if(l.el) l.el.inc.checked = false; paintLane(l); } }); refreshGate(); };
+  $('clearAll').onclick = clearAll;
+  refreshGate();
+  loadFleetDefaults();   // also calls refreshModelHint()/refreshUsbHint()/refreshBenchHint() once the values arrive
+  scan();
+</script>
+</body>
+</html>
