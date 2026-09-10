@@ -139,6 +139,7 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/golden/customize-stock-image.sh` | Faster path: bakes the connector into the stock Pi OS Lite image in a chroot, with an ARMv6 variant for the Pi Zero W. |
 | `deploy/pi/golden/pi-gen.config` | pi-gen settings for the image: arm64 Bookworm Lite, headless, FAT boot partition kept for flasher injection. |
 | `deploy/pi/golden/stage-autopost/prerun.sh` | pi-gen stage guard: copies the previous stage's rootfs before the AutoPost layer is applied. |
+| `deploy/pi/golden/stage-autopost/00-install-connector/` | The pi-gen install stage: packages, host-side staging and the chroot script — deliberately refuses to run (see below). |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
@@ -148,9 +149,10 @@ The agent expects a real `config.json` at runtime; it is git-ignored and never c
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
 The golden-image kit is a recipe, not a built artifact: nothing in it has been run through
-pi-gen or certified on hardware yet, and `build-golden.sh` still expects the two chroot stage
-folders `stage-autopost/00-install-connector/` and `stage-autopost/01-data-and-overlay/`, which
-have not been added. `customize-stock-image.sh` is the standalone faster path and needs neither.
+pi-gen or certified on hardware yet. `customize-stock-image.sh` is the real shipping path.
+The pi-gen route is stale on purpose — its chroot script exits with an error unless
+`ALLOW_STALE_PIGEN_STAGE=1` is set, because it would build an image with no WiFi or Bluetooth
+rescue, and its second stage folder `stage-autopost/01-data-and-overlay/` has not been added.
 
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
 Current state: `planned-refresh` 13/13, `wifi-recovery` 87/87 and `config-resilience` 8/8 pass
