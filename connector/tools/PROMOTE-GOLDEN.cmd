@@ -51,7 +51,7 @@ for %%N in (autopost-golden autopost-golden-zerow) do (
     rem Integrity FIRST. A truncated or corrupt image that reaches images\ gets
     rem written to cards and only fails on the bench, hours later.
     echo    checking archive integrity...
-    wsl.exe -e xz -t "/mnt/c/Users/wills/Desktop/AutoPost/%SRC%/%%N.img.xz"
+    wsl.exe -e xz -t "!WSLROOT!/%SRC%/%%N.img.xz"
     if errorlevel 1 (
       echo    FAILED its integrity check - NOT promoted. Rebuild it.
     ) else (
