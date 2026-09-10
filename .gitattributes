@@ -3,3 +3,9 @@
 *.service       text eol=lf
 *.rules         text eol=lf
 deploy/pi/*     text eol=lf
+*.conf          text eol=lf
+*.py            text eol=lf
+
+# Windows-side bench tools that happen to live in deploy/pi/ — batch files with LF endings break `goto`/labels.
+deploy/pi/*.cmd text eol=crlf
+deploy/pi/*.ps1 text eol=crlf

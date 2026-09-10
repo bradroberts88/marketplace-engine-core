@@ -1,0 +1,9 @@
+// Polkit rule: let the unprivileged "autopost" service user manage NetworkManager (add/modify WiFi + control
+// the radio) WITHOUT root/sudo. This is what lets the connector apply a super-admin "Set WiFi" push directly,
+// while the connector service itself stays locked down (unprivileged, NoNewPrivileges) — we grant ONLY the
+// NetworkManager actions, nothing else. Installed to /etc/polkit-1/rules.d/ by deploy/pi/install.sh.
+polkit.addRule(function (action, subject) {
+  if (subject.user === "autopost" && action.id.indexOf("org.freedesktop.NetworkManager.") === 0) {
+    return polkit.Result.YES;
+  }
+});
