@@ -40,6 +40,9 @@ This is the first batch of material; more is on the way.
 | `README.md` | Connector overview: what it is, why, architecture, and baked-in safeguards. |
 | `package.json` / `package-lock.json` | Node manifest and lockfile (`dealership-connector`, product name "AutoPost"). |
 | `src/agent.js` | The connector agent: dials out to the control server over WSS, relays rep streams, heartbeat, remote config, auto-update with rollback. |
+| `src/claim.js` | First-run self-provisioning client: redeems a one-time setup code and writes `config.json` durably. |
+| `src/dashboard.js` | Local 127.0.0.1 status dashboard: tunnel health, public IP/geo/latency probe, rep list. |
+| `src/tunnel.js` | Data-plane egress with the LAN-isolation guard (blocks private/loopback/link-local/CGNAT, IPv4 + IPv6, fail closed). |
 | `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
 | `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
 | `firstrun-ui.js` | First-run setup screen: redeems a one-time setup code against the claim endpoint and writes `config.json`. |
