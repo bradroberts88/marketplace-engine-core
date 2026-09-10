@@ -146,6 +146,11 @@ with no dependencies.
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
+The golden-image kit is a recipe, not a built artifact: nothing in it has been run through
+pi-gen or certified on hardware yet, and `build-golden.sh` still expects a
+`deploy/pi/golden/stage-autopost/` folder (prerun plus the two chroot stages) that has not
+been added. `customize-stock-image.sh` is the standalone faster path and needs no stage folder.
+
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
 Current state: `planned-refresh` 13/13, `wifi-recovery` 87/87 and `config-resilience` 8/8 pass
 (the last three checks now read the `autopost-connector.service` and `autopost-claim.service`
