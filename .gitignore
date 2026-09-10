@@ -54,4 +54,5 @@ __pycache__/
 *.bin
 vk_swiftshader_icd.json
 LICENSES.chromium.html
+LICENSE.electron.txt
 locales/
