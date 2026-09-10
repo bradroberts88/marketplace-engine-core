@@ -63,6 +63,14 @@ This is the first batch of material; more is on the way.
 | `keep-alive/Uninstall-KeepAlive.ps1` | Removes the scheduled task. |
 | `keep-alive/keep-alive.ps1` | The watchdog itself: restarts AutoPost when missing, or when running but wedged (heartbeat older than 90s). |
 | `keep-alive/run-hidden.vbs` | Invisible launcher so the watchdog never flashes a console window. |
+| `flasher/index.html` | The VA-facing "Set up a Pi" screen: card picker, WiFi, claim code, dry run and flash progress. |
+| `flasher/main-flasher.js` | Electron main-process side: drive scan, safety filter, dry run, batch confirmation, spawns the elevated writer. |
+| `flasher/preload.js` | The only bridge between the flasher screen and the main process (scan, dry run, flash, verify, progress). |
+| `flasher/safety.js` | The "never flash the wrong drive" predicates: pure, fail-closed eligibility gates for removable SD cards. |
+| `flasher/writer.js` | The elevated worker: re-verifies the target, writes and verifies the image with Raspberry Pi Imager, injects the boot files. |
+| `flasher/inject.js` | Pure renderer for the files dropped on the card's boot partition (`autopost-claim.env`, `firstrun.sh`, USB-gadget SSH). |
+| `flasher/hub.js` | Claim-code source: validates a pasted code, or mints one against the admin API when `AUTOPOST_ADMIN_URL`/`AUTOPOST_ADMIN_TOKEN` are set. |
+| `flasher/sha512crypt.js` | Pure-Node SHA-512 crypt (`$6$`) for the Pi console password, so no OpenSSL binary is needed on Windows. |
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
