@@ -55,6 +55,7 @@ and trusted (it's a real business). See the decision doc: `../../.claude/plans/h
 - `install/install-connector.ps1` — admin PowerShell installer: registers the `DealershipConnector` scheduled task (at boot, hidden, SYSTEM, restart-on-failure). Requires Node.js LTS installed for all users and a filled-in `config.json`.
 - `install/run-agent.cmd` — supervisor loop the task launches; relaunches `src/agent.js` 5s after any exit.
 - `install/uninstall-connector.ps1` — removes the task and stops any running agent.
+- `scripts/sign-build.js` — signs an agent build with the operator's Ed25519 private key and writes a detached `<build>.sig`. Upload the build **and** the `.sig`; the agent verifies against the public key pinned in `src/agent.js` (`UPDATE_PUBKEY_PEM`) before applying a remote update. Key path comes from `$AUTOPOST_SIGNING_KEY` (default `%USERPROFILE%/.autopost-signing/...`) and must never be copied to the VPS.
 
 ## Run (dev, once implemented)
 ```
