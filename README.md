@@ -58,7 +58,15 @@ This is the first batch of material; more is on the way.
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
+### deploy/pi/
+
+| File | Purpose |
+|---|---|
+| `wifi-recovery.js` | On-device WiFi rescue daemon (`autopost-wifi-recovery.service`): raises an "AutoPost-Setup" access point with a captive setup page when a Pi is stranded on wrong WiFi credentials. |
+
 ### Required third-party tool
+
+
 
 The flashing guide uses **Raspberry Pi Imager**. It is not stored in this repository
 (`*.exe` is git-ignored); each bench machine downloads it from the official page:
