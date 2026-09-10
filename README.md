@@ -25,6 +25,8 @@ This is the first batch of material; more is on the way.
 | `desktop-app-roadmap.md` | Desktop app roadmap to 1,000 clients: shipped work and prioritized phases. |
 | `flasher-packaging.md` | Packaging and deployment of the VA Pi Setup flasher (electron-builder outputs, prereqs). |
 | `install-dealership.md` | Dealership-facing install guide for the AutoPost desktop app. |
+| `TECHNICAL-DESIGN.md` | Technical design document: goals, topology, data/control planes, security, failure behaviour. |
+| `SOFTWARE-DESIGN.md` | Software design document: module boundaries, interfaces, state machines, conventions, testing. |
 
 ### bench/
 
