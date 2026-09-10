@@ -6,14 +6,14 @@
  *
  *   node scripts/sign-build.js <path-to-agent-build.js> [privateKeyPath]
  *
- * privateKeyPath defaults to $AUTOPOST_SIGNING_KEY or C:/Users/Roger/.autopost-signing/autopost-agent-ed25519.key
+ * privateKeyPath defaults to $AUTOPOST_SIGNING_KEY or %USERPROFILE%/.autopost-signing/autopost-agent-ed25519.key
  * NEVER copy the private key onto the VPS. If it is ever exposed, rotate the keypair + re-pin the public key.
  */
 const crypto = require('crypto');
 const fs = require('fs');
 
 const buildPath = process.argv[2];
-const keyPath = process.argv[3] || process.env.AUTOPOST_SIGNING_KEY || 'C:/Users/Roger/.autopost-signing/autopost-agent-ed25519.key';
+const keyPath = process.argv[3] || process.env.AUTOPOST_SIGNING_KEY || (process.env.USERPROFILE || process.env.HOME || '.') + '/.autopost-signing/autopost-agent-ed25519.key';
 if (!buildPath) { console.error('usage: node scripts/sign-build.js <agent-build.js> [privateKeyPath]'); process.exit(1); }
 
 const buf = fs.readFileSync(buildPath);
