@@ -1,0 +1,111 @@
+AutoPost - Pi card setup
+========================
+
+THREE STEPS. That is the whole thing.
+
+  1. Right-click AutoPost-Setup.zip and choose "Extract All...".
+     Wait for it to finish. It is about 1.7 GB, so give it a minute.
+
+  2. Open the folder it created.
+
+  3. Double-click  START-HERE.bat
+
+That is it. The launcher does the rest: it unblocks the downloaded files,
+checks nothing is missing, installs Raspberry Pi Imager if this PC does not
+have it yet, loads the bench settings, and opens the app.
+
+
+WHAT IS NEW IN THIS BUILD (30 August 2026, build 2)
+--------------------------------------------------
+
+  FIXES THE "form is not defined" CRASH
+      Build 1 threw a ReferenceError the moment you pressed Erase + Flash,
+      so no card could be written at all. That is fixed. A test now drives
+      that exact confirm dialog, so the same class of fault cannot ship
+      again unnoticed. If you downloaded build 1, delete it and use this.
+
+The Pi images in here were rebuilt on 27 August and are NEWER than anything
+flashed before. Cards written from this bundle get all of the following. Full
+detail is in WIFI-RESCUE.md.
+
+  Wired mode - new, chosen per card in the app
+      A card can now be provisioned with NO WiFi credentials at all. It takes
+      its uplink from a USB-ethernet adapter in the Pi's USB port instead. No
+      WiFi password to mistype means the whole class of "it never came online"
+      failures stops applying. Service access is still 10.55.0.1, same as
+      before, over a patch cable instead of the USB lead.
+      NOTE: a wired card needs a live ethernet drop AND an adapter to claim on
+      the bench. It will not use the bench WiFi.
+
+  Bluetooth rescue - new
+      A third independent way onto a unit that will not connect, alongside the
+      WiFi rescue AP and the USB cable.
+
+  Five WiFi-rescue bugs fixed
+      These caused units to fail at customer sites while passing on the bench.
+      One of them meant the bench test was itself breaking the card it was
+      supposed to validate. Cards already in the field repair themselves on
+      their next boot; nobody has to touch them.
+
+  A diagnostic log
+      Readable over all three channels, so a unit that will not connect can
+      finally say why.
+
+
+Two prompts you will see, both normal
+-------------------------------------
+
+  "Windows protected your PC"
+      Click "More info", then "Run anyway". This appears because the file was
+      downloaded from the internet and is not signed by a company Windows
+      recognises.
+
+  "Do you want to allow this app to make changes to your device?"
+      Click YES. Writing SD cards needs administrator rights, and answering
+      yes once here is what lets the app write several cards at the same time
+      instead of asking you again for every card.
+
+
+Do NOT double-click START-HERE.bat from inside the ZIP preview window
+---------------------------------------------------------------------
+If you open the ZIP by double-clicking it and run START-HERE.bat from that
+window, Windows only unpacks that one file. The app and the 1.4 GB of Pi
+images stay in the ZIP, so nothing works. The launcher detects this and tells
+you, but save yourself the trip: extract first, then run.
+
+
+What is in here
+---------------
+  START-HERE.bat        the only file you double-click
+  bench-settings.cmd    WiFi, SSH key, Pi password, Tailscale key
+  app\                  the flasher application
+  images\               the two golden Pi images that get written to cards
+  imager_latest.exe     Raspberry Pi Imager, installed automatically if needed
+  source\flasher\       the flasher source
+  tools\                VERIFY-PI, USB-SSH, RUN-TESTS, PROMOTE-GOLDEN
+  README.md             the full reference
+  VA-FLASH-A-PI-CARD.md step-by-step card flashing guide
+  WIFI-RESCUE.md        getting a Pi onto the customer's WiFi when it will not
+                        join by itself, and what changed in this build
+
+
+THIS FOLDER CONTAINS REAL SECRETS
+---------------------------------
+bench-settings.cmd holds the fleet Pi password and the Tailscale auth key.
+They are the same on every unit shipped, and the Pis run SSH on the customer's
+network, so anyone who gets this folder can log into any Pi already deployed.
+
+  - Do not put this folder on a shared drive, Dropbox, or Google Drive.
+  - Do not commit it to git.
+  - Do not forward the download link to anyone who does not need it.
+
+
+Flashing cards - the one rule that bites
+----------------------------------------
+EVERY CARD NEEDS ITS OWN SETUP CODE. Codes are one-time: the hub burns one the
+first time a Pi claims it. Two cards sharing a code means the second Pi never
+comes online. Mint one code per card on the Ship-a-Pi page before you start.
+The app refuses to flash if it sees the same code twice.
+
+Full instructions are in VA-FLASH-A-PI-CARD.md and in the comments at the top
+of START-HERE.bat.
