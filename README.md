@@ -71,6 +71,16 @@ This is the first batch of material; more is on the way.
 | `flasher/inject.js` | Pure renderer for the files dropped on the card's boot partition (`autopost-claim.env`, `firstrun.sh`, USB-gadget SSH). |
 | `flasher/hub.js` | Claim-code source: validates a pasted code, or mints one against the admin API when `AUTOPOST_ADMIN_URL`/`AUTOPOST_ADMIN_TOKEN` are set. |
 | `flasher/sha512crypt.js` | Pure-Node SHA-512 crypt (`$6$`) for the Pi console password, so no OpenSSL binary is needed on Windows. |
+| `flasher/_test/safety.test.js` | The "never the wrong drive" predicates against synthetic drive rows. |
+| `flasher/_test/inject.test.js` | Golden-file test of every rendered boot-partition file, including shell-injection safety. |
+| `flasher/_test/nowifi.test.js` | Capture-WiFi-on-first-boot cards: no profiles written, claim code and password still present. |
+| `flasher/_test/confirm-batch.test.js` | Drives the real one-dialog-per-batch confirmation (Electron and drivelist stubbed). |
+| `flasher/_test/batch.test.js` | Batch consent tokens, per-device write lock, per-lane job id. Needs Electron installed. |
+| `flasher/_test/pi-model.test.js` | Pi-model image resolution and the environment overrides. Needs Electron installed. |
+| `flasher/_test/electron-load-test.js` | Live check under the real Electron runtime: native modules load, this machine's system disk is refused. |
+| `flasher/_test/build-plan.js` | Builds a real plan file targeting an eligible card, for an end-to-end run of the writer. |
+| `flasher/_test/do-inject.js` | Injects the boot files into an already-flashed, mounted boot partition. |
+| `flasher/_test/path-mangle-test.js` | Checks whether Node mangles the `\\.\PhysicalDriveN` device path. |
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
@@ -79,6 +89,12 @@ Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need 
 Current state: `planned-refresh` 13/13 and `wifi-recovery` 87/87 pass. `config-resilience`
 passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-connector.service`
 and `autopost-claim.service`, which have not been added to the repository yet.
+
+The flasher tests run the same way (`node flasher/_test/<name>.test.js`). Current state:
+`safety` 16/16, `inject` 49/49, `nowifi` 10/10 and `confirm-batch` 10/10 pass with no
+dependencies. `batch` and `pi-model` need Electron installed (they load `main-flasher.js`,
+which requires `electron`), and `electron-load-test.js`, `build-plan.js`, `do-inject.js`
+and `path-mangle-test.js` are bench helpers that need real hardware or a flashed card.
 
 
 
