@@ -62,17 +62,19 @@ export const Route = createFileRoute("/api/public/device-heartbeat")({
         if (device.status === "retired") return json({ error: "device_retired" }, 403);
 
         const now = new Date().toISOString();
+        const patch: Record<string, string | number | null> = {
+          status: parsed.status,
+          last_heartbeat_at: now,
+        };
+        if (parsed.agentVersion) patch["agent_version"] = parsed.agentVersion;
+        if (parsed.imageVersion) patch["image_version"] = parsed.imageVersion;
+        if (parsed.publicIp) patch["public_ip"] = parsed.publicIp;
+        if (typeof parsed.latencyMs === "number") patch["latency_ms"] = parsed.latencyMs;
+        if (device.status === "unclaimed") patch["claimed_at"] = now;
+
         const { error: updateError } = await supabaseAdmin
           .from("devices")
-          .update({
-            status: parsed.status,
-            last_heartbeat_at: now,
-            agent_version: parsed.agentVersion ?? undefined,
-            image_version: parsed.imageVersion ?? undefined,
-            public_ip: parsed.publicIp ?? undefined,
-            latency_ms: parsed.latencyMs ?? undefined,
-            claimed_at: device.status === "unclaimed" ? now : undefined,
-          })
+          .update(patch)
           .eq("id", device.id);
 
         if (updateError) return json({ error: "update_failed" }, 500);
@@ -83,7 +85,7 @@ export const Route = createFileRoute("/api/public/device-heartbeat")({
           event_type: parsed.event?.type ?? "heartbeat",
           severity: parsed.event?.severity ?? "info",
           message: parsed.event?.message ?? null,
-          payload: (parsed.event?.payload ?? {}) as Record<string, unknown>,
+          payload: JSON.parse(JSON.stringify(parsed.event?.payload ?? {})),
         });
 
         return json({ ok: true, deviceId: device.id, receivedAt: now });
