@@ -1,0 +1,41 @@
+# AutoPost dealership tunnel connector — Linux/systemd service (Raspberry Pi).
+# This is the Linux equivalent of the Windows scheduled-task + keep-alive supervisor: it starts the connector at
+# boot and restarts it forever if it ever exits. The relay (src/agent.js) already self-exits when wedged and
+# self-rolls-back a bad update; systemd is the "always bring it back" layer it assumes exists.
+#
+# Install: see deploy/pi/install.sh (copies this to /etc/systemd/system/, enables it).
+
+[Unit]
+Description=AutoPost dealership tunnel connector
+Documentation=https://github.com/dogershub/autopost
+After=network-online.target
+Wants=network-online.target
+# Don't spin if config.json isn't there yet (a generic image claims it on first boot — see autopost-claim.service).
+ConditionFileNotEmpty=/var/lib/autopost/config.json
+# Never rate-limit restarts — a fresh device with no internet yet must keep retrying forever. (Belongs in
+# [Unit], not [Service]; systemd ignores it in [Service] with an "Unknown key" warning.)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=autopost
+Group=autopost
+WorkingDirectory=/opt/autopost/connector
+# Keep ALL writes off the read-only rootfs: config (the claim token) + heartbeat/boot-history live here.
+Environment=CONNECTOR_CONFIG=/var/lib/autopost/config.json
+Environment=CONNECTOR_RUNTIME_DIR=/var/lib/autopost/runtime
+ExecStart=/usr/bin/node /opt/autopost/connector/src/agent.js
+# 24/7: bring it back on ANY exit, fast. The agent's own crash-loop rollback handles a bad update.
+Restart=always
+RestartSec=3
+# Hardening — the relay only needs outbound network + its own writable data dir.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/autopost
+# Loopback (local dashboard) + outbound only; no inbound listeners on the LAN.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

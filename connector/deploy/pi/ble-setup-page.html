@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AutoPost Bluetooth Setup</title>
+<!--
+  One-tap Bluetooth setup for an AutoPost Pi, over Web Bluetooth. Talks to the same GATT service as
+  deploy/pi/autopost-ble-setup.py.
+
+  DEPLOYMENT: Web Bluetooth requires a SECURE context. Serve this from an https:// origin (or open it as
+  file:// on a desktop, which also counts). It is deliberately self-contained - no fonts, no scripts, no
+  images from anywhere - so it can be dropped on any static host, mailed as an attachment, or opened from a
+  USB stick with no network at all.
+
+  COVERAGE, STATED PLAINLY: this page works in Chrome and Edge on Android, Windows, macOS and Linux. It does
+  NOT work on iPhone or iPad, because iOS has no Web Bluetooth in any browser - Safari and iOS Chrome both.
+  That is a platform limitation with no workaround, which is exactly why the device's Bluetooth protocol was
+  designed to be typeable by hand: on iOS a technician uses the free nRF Connect or LightBlue app and writes
+  one line. See WIFI-RESCUE.md. This page is the convenience path, never the only path.
+-->
+<style>
+  :root{--bg:#12162e;--bg2:#171d3a;--card:#1f2547;--ink:#eef1fb;--muted:#98a1c9;--line:#2b3466;
+        --accent:#8f9cf6;--accent2:#b9a5f4;--bad:#f27a9c;--good:#43d6a0;--warn:#ffb454}
+  @media(prefers-color-scheme:light){:root{--bg:#eceffa;--bg2:#f5f7fd;--card:#fff;--ink:#1a2048;--muted:#5c6595;--line:#e4e7f4}}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{background:radial-gradient(1200px 600px at 12% -8%,var(--bg2),var(--bg));color:var(--ink);
+       font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh}
+  .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .card{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);border-radius:22px;
+        padding:30px 28px;box-shadow:0 14px 34px rgba(6,9,26,.4)}
+  .mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+        display:grid;place-items:center;color:#0e1230;font-weight:800;font-size:20px;margin-bottom:16px}
+  h1{font-size:21px;margin:0 0 4px}p.sub{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.5}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+  .field input,.field select{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--line);
+        background:var(--bg2);color:var(--ink);font:inherit;font-size:15px}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(143,156,246,.22)}
+  .btn{width:100%;margin-top:8px;padding:13px;border:0;border-radius:12px;
+       background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0e1230;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)}.btn[disabled]{opacity:.55;cursor:default}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--muted);font-weight:600;margin-top:10px}
+  .banner{border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13.5px;font-weight:600;display:none}
+  .banner.show{display:block}
+  .banner.err{background:rgba(242,122,156,.16);border:1px solid rgba(242,122,156,.5);color:var(--bad)}
+  .banner.ok{background:rgba(67,214,160,.16);border:1px solid rgba(67,214,160,.5);color:var(--good)}
+  .banner.warn{background:rgba(255,180,84,.16);border:1px solid rgba(255,180,84,.5);color:var(--warn)}
+  .note{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px;margin:4px 0 16px}
+  .noteh{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px;font-weight:700}
+  .kv{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .kv span{font-size:12.5px;color:var(--muted);min-width:96px}
+  .kv code{font-family:Consolas,ui-monospace,monospace;font-size:14px;font-weight:700;
+        background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;word-break:break-all;flex:1}
+  .fine{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+  pre.log{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;
+        font-family:Consolas,ui-monospace,monospace;font-size:11.5px;line-height:1.45;color:var(--muted);
+        max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:0 0 14px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+  <div class="mark">&#9672;</div>
+  <h1>AutoPost Bluetooth Setup</h1>
+  <p class="sub" id="lede">Connect over Bluetooth to give this device the right WiFi. Works even when its own
+    setup network will not appear.</p>
+
+  <div class="banner" id="banner"></div>
+
+  <div id="unsupported" class="hide">
+    <div class="note">
+      <div class="noteh">This browser cannot do Bluetooth</div>
+      <p class="fine" id="whynot"></p>
+      <p class="fine"><b>On an iPhone or iPad,</b> use the free <b>nRF Connect</b> or <b>LightBlue</b> app instead.
+        Connect to the device named <code>AutoPost-Setup-&hellip;</code>, open the service starting
+        <code>a5f10000</code>, and write this text to the characteristic ending <code>0003</code>:</p>
+      <div class="kv"><span>Write</span><code>setupcode|YourWiFiName|YourPassword</code></div>
+      <p class="fine">Then read the characteristic ending <code>0001</code> to see how it went.</p>
+    </div>
+  </div>
+
+  <div id="connectPane">
+    <button class="btn" id="connect">Find nearby AutoPost devices</button>
+    <p class="fine">The device must be powered on and within about ten metres. It appears as
+      <b>AutoPost&#8209;Setup&#8209;</b> followed by four characters.</p>
+  </div>
+
+  <div id="mainPane" class="hide">
+    <div class="note">
+      <div class="noteh">Device</div>
+      <div class="kv"><span>Name</span><code id="devName">&mdash;</code></div>
+      <div class="kv"><span>Status</span><code id="devState">reading&hellip;</code></div>
+      <div class="kv"><span>WiFi MAC</span><code id="devMac">&mdash;</code></div>
+    </div>
+
+    <div class="field">
+      <label for="code">Setup code</label>
+      <input id="code" autocomplete="off" placeholder="the code on the device card">
+    </div>
+    <div class="field">
+      <label for="ssid">WiFi network</label>
+      <select id="ssid"><option value="__other__">Type it in below&hellip;</option></select>
+    </div>
+    <div class="field hide" id="manualWrap">
+      <label for="ssidManual">Network name (SSID)</label>
+      <input id="ssidManual" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="password">WiFi password</label>
+      <input id="password" type="password" autocomplete="off">
+    </div>
+    <button class="btn" id="send">Send to device</button>
+    <button class="btn ghost" id="rescan">Ask the device to re-scan</button>
+    <button class="btn ghost" id="showlog">Show the device's diagnostic log</button>
+    <pre class="log hide" id="log"></pre>
+  </div>
+</div></div>
+
+<script>
+(function () {
+  'use strict';
+  // Must match deploy/pi/autopost-ble-setup.py. Fixed for the life of the product.
+  var SVC      = 'a5f10000-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_STATUS = 'a5f10001-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_NETS   = 'a5f10002-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_CREDS  = 'a5f10003-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_RESULT = 'a5f10004-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_LOG    = 'a5f10005-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+  var C_CMD    = 'a5f10006-4e7a-4c2b-9d1f-6b0e2c7a9d31';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var dec = new TextDecoder();
+  var enc = new TextEncoder();
+  var chars = {};
+  var device = null;
+
+  function banner(text, cls) {
+    var b = $('banner');
+    b.textContent = text;
+    b.className = 'banner show ' + (cls || 'ok');
+  }
+  function clearBanner() { $('banner').className = 'banner'; }
+
+  // Web Bluetooth is gated on a secure context AND on the browser having the API at all. Distinguishing the two
+  // matters: "you are on http" is a fixable mistake, "your browser will never do this" is not, and telling
+  // someone in a service bay to try again on a page that can never work wastes their afternoon.
+  if (!navigator.bluetooth) {
+    $('connectPane').classList.add('hide');
+    $('unsupported').classList.remove('hide');
+    $('whynot').textContent = window.isSecureContext
+      ? 'This browser has no Web Bluetooth. Chrome or Edge on Android, Windows, macOS or Linux will work; iPhone and iPad never will, in any browser.'
+      : 'This page was opened over an insecure connection, and browsers only allow Bluetooth on https:// pages. Reopen it over https.';
+    return;
+  }
+
+  // A characteristic value can be longer than one BLE read. The device serves a snapshot taken at offset 0 and
+  // Web Bluetooth's readValue() performs the long read for us, so a single call returns the whole value.
+  function readText(key) {
+    if (!chars[key]) return Promise.resolve('');
+    return chars[key].readValue().then(function (dv) { return dec.decode(dv); });
+  }
+  function readJson(key) {
+    return readText(key).then(function (t) {
+      try { return JSON.parse(t); } catch (e) { return null; }
+    });
+  }
+
+  // Writes are chunked to 20 bytes: that is the payload of the smallest MTU any peer may negotiate, and the
+  // device reassembles by arrival order. Sending one large write instead would work on most phones and fail on
+  // the one in the customer's pocket. A trailing newline is the device's explicit end-of-message marker, so it
+  // never has to wait out its idle timer.
+  function writeText(key, text) {
+    var chr = chars[key];
+    if (!chr) return Promise.reject(new Error('This device does not offer that.'));
+    var bytes = enc.encode(text + '\n');
+    var chain = Promise.resolve();
+    for (var i = 0; i < bytes.length; i += 20) {
+      (function (slice) {
+        chain = chain.then(function () {
+          return chr.writeValueWithoutResponse
+            ? chr.writeValueWithoutResponse(slice)
+            : chr.writeValue(slice);
+        });
+      })(bytes.slice(i, i + 20));
+    }
+    return chain;
+  }
+
+  function describe(st) {
+    if (!st) return 'unknown';
+    if (st.connectivity === 'full') return 'online' + (st.ssid ? ' on "' + st.ssid + '"' : '');
+    if (st.connectivity === 'portal') return 'joined "' + (st.ssid || 'a network') + '" but it needs a sign-in';
+    if (st.connectivity === 'limited') return 'joined a network but has no route out';
+    if (st.phase === 'ap') return 'offline, showing its own setup network';
+    if (st.phase === 'connecting') return 'trying new credentials now';
+    return 'offline, not joined to any network';
+  }
+
+  function refreshStatus() {
+    return readJson('status').then(function (st) {
+      if (!st) return;
+      $('devState').textContent = describe(st);
+      $('devMac').textContent = st.mac || '—';
+      if (st.connectivity === 'portal') {
+        banner('The password was accepted, but this network makes new devices sign in through a web page. '
+          + 'Ask whoever manages the WiFi to allow the MAC address above, or use a staff network instead.', 'warn');
+      }
+    });
+  }
+
+  function refreshNetworks() {
+    return readJson('nets').then(function (data) {
+      var sel = $('ssid');
+      var nets = (data && data.networks) || [];
+      while (sel.options.length) sel.remove(0);
+      nets.forEach(function (n) {
+        var o = document.createElement('option');
+        o.value = n.ssid;
+        o.textContent = n.ssid + ' (' + (n.signal || 0) + '%)';
+        sel.appendChild(o);
+      });
+      var other = document.createElement('option');
+      other.value = '__other__';
+      other.textContent = nets.length ? 'Other / hidden network…' : 'Type it in below…';
+      sel.appendChild(other);
+      syncManual();
+    });
+  }
+
+  function syncManual() {
+    $('manualWrap').classList.toggle('hide', $('ssid').value !== '__other__');
+  }
+
+  function onResult(dv) {
+    // Notifications are a nudge, not a delivery: the device truncates them to fit the smallest possible MTU.
+    // Always re-read the characteristic for the real value.
+    readJson('result').then(function (r) {
+      if (!r) return;
+      if (r.ok === true) {
+        banner('Connected. The device is online' + (r.ssid ? ' on "' + r.ssid + '"' : '') + '. You are done.', 'ok');
+      } else if (r.captive) {
+        banner('It joined "' + (r.ssid || 'that network') + '" and the password was right, but the network needs a '
+          + 'sign-in. Ask for the MAC address above to be allowed, or use a network without a sign-in page.', 'warn');
+      } else if (r.ok === false && r.error) {
+        banner(r.error, 'err');
+      }
+      $('send').disabled = false;
+      $('send').textContent = 'Send to device';
+      refreshStatus();
+    });
+  }
+
+  $('ssid').addEventListener('change', syncManual);
+
+  $('connect').addEventListener('click', function () {
+    clearBanner();
+    // Filtered on the service UUID rather than the name: a technician should not have to know which of the two
+    // devices in the rack they are looking at before the picker will even list them.
+    navigator.bluetooth.requestDevice({ filters: [{ services: [SVC] }], optionalServices: [SVC] })
+      .then(function (d) {
+        device = d;
+        d.addEventListener('gattserverdisconnected', function () {
+          banner('The Bluetooth connection dropped. Tap "Find nearby AutoPost devices" to reconnect.', 'err');
+          $('mainPane').classList.add('hide');
+          $('connectPane').classList.remove('hide');
+        });
+        $('devName').textContent = d.name || '(unnamed)';
+        return d.gatt.connect();
+      })
+      .then(function (server) { return server.getPrimaryService(SVC); })
+      .then(function (svc) {
+        return Promise.all([
+          svc.getCharacteristic(C_STATUS).then(function (c) { chars.status = c; }),
+          svc.getCharacteristic(C_NETS).then(function (c) { chars.nets = c; }),
+          svc.getCharacteristic(C_CREDS).then(function (c) { chars.creds = c; }),
+          svc.getCharacteristic(C_RESULT).then(function (c) { chars.result = c; }),
+          // The last two are conveniences. An older device that predates them must still be usable for the one
+          // job that matters, so a missing characteristic disables its button rather than failing the connect.
+          svc.getCharacteristic(C_LOG).then(function (c) { chars.log = c; })
+            .catch(function () { $('showlog').disabled = true; }),
+          svc.getCharacteristic(C_CMD).then(function (c) { chars.cmd = c; })
+            .catch(function () { $('rescan').disabled = true; })
+        ]);
+      })
+      .then(function () {
+        return chars.result.startNotifications().then(function (c) {
+          c.addEventListener('characteristicvaluechanged', function (e) { onResult(e.target.value); });
+        }).catch(function () { /* notifications are optional; the buttons re-read anyway */ });
+      })
+      .then(function () {
+        $('connectPane').classList.add('hide');
+        $('mainPane').classList.remove('hide');
+        return Promise.all([refreshStatus(), refreshNetworks()]);
+      })
+      .catch(function (err) {
+        if (err && err.name === 'NotFoundError') return;   // the picker was dismissed; not an error
+        banner('Could not connect: ' + (err && err.message ? err.message : err), 'err');
+      });
+  });
+
+  $('send').addEventListener('click', function () {
+    clearBanner();
+    var code = $('code').value.trim();
+    var ssid = $('ssid').value === '__other__' ? $('ssidManual').value.trim() : $('ssid').value;
+    if (!code) { banner('Enter the setup code from the device card.', 'err'); return; }
+    if (!ssid) { banner('Choose or type the WiFi network name.', 'err'); return; }
+    $('send').disabled = true;
+    $('send').textContent = 'Sending…';
+    // JSON, not the pipe form: a password or SSID containing "|" is perfectly legal and the typed shorthand
+    // cannot represent it. The device accepts both and this path has no reason to be lossy.
+    writeText('creds', JSON.stringify({
+      code: code, action: 'connect', ssid: ssid,
+      password: $('password').value, hidden: $('ssid').value === '__other__'
+    })).then(function () {
+      banner('Sent. The device is applying it now — this takes up to a minute, and its WiFi will drop while it '
+        + 'works. Keep this page open.', 'ok');
+      setTimeout(function () { onResult(null); }, 15000);
+    }).catch(function (err) {
+      $('send').disabled = false;
+      $('send').textContent = 'Send to device';
+      banner('Could not send: ' + (err && err.message ? err.message : err), 'err');
+    });
+  });
+
+  $('rescan').addEventListener('click', function () {
+    var code = $('code').value.trim();
+    if (!code) { banner('Enter the setup code first.', 'err'); return; }
+    writeText('cmd', code + '|scan')
+      .then(function () {
+        banner('Asked the device to re-scan. Give it a few seconds, then this list will refresh.', 'ok');
+        setTimeout(refreshNetworks, 6000);
+      })
+      .catch(function (err) { banner('Could not send: ' + (err && err.message ? err.message : err), 'err'); });
+  });
+
+  $('showlog').addEventListener('click', function () {
+    readText('log').then(function (text) {
+      $('log').textContent = text || '(the device has not written a log yet)';
+      $('log').classList.remove('hide');
+    }).catch(function (err) {
+      banner('Could not read the log: ' + (err && err.message ? err.message : err), 'err');
+    });
+  });
+})();
+</script>
+</body>
+</html>

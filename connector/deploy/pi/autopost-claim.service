@@ -1,0 +1,33 @@
+# First-boot self-provisioning (the "generic image + claim code" fleet flow). Runs BEFORE the connector, and
+# ONLY if config.json is not there yet AND a claim code was dropped on the boot partition at imaging
+# (/boot/firmware/autopost-claim.env with CLAIM_URL=... and CLAIM_CODE=...). It POSTs the one-time code to the
+# tunnel's /claim endpoint and writes /var/lib/autopost/config.json, so nobody hand-edits a config file.
+#
+# For the PILOT we instead pre-bake config.json directly, so this service simply no-ops (the ConditionFileNotEmpty
+# below skips it). Retries: a fresh dealership's internet may not be up at first boot — Restart re-runs it until
+# the claim succeeds; once config.json exists AND IS NON-EMPTY the ConditionFileNotEmpty stops it permanently.
+
+[Unit]
+Description=AutoPost connector first-boot claim (self-provision config)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+ConditionFileNotEmpty=!/var/lib/autopost/config.json
+ConditionFileNotEmpty=/boot/firmware/autopost-claim.env
+Before=autopost-connector.service
+
+[Service]
+Type=oneshot
+User=autopost
+EnvironmentFile=/boot/firmware/autopost-claim.env
+ExecStart=/usr/bin/node /opt/autopost/connector/src/claim.js ${CLAIM_URL} ${CLAIM_CODE} /var/lib/autopost/config.json
+# ONE-BOOT onboarding: the moment the claim writes config.json, start the connector — else it stays skipped until a
+# SECOND reboot (it was ConditionFileNotEmpty-skipped at boot before config.json existed). A dealership plugs in ONCE.
+# The '+' runs this line as root (the unit itself runs as the unprivileged autopost user, which can't start a unit).
+ExecStartPost=+/usr/bin/systemctl --no-block start autopost-connector.service
+# Keep retrying until the claim lands (internet up + valid code); harmless once config.json exists.
+Restart=on-failure
+RestartSec=30
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

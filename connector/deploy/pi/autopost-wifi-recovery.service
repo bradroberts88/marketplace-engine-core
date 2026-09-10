@@ -1,0 +1,30 @@
+[Unit]
+Description=AutoPost WiFi recovery (on-device captive-portal rescue for wrong flashed credentials)
+Documentation=https://marketplaceautopost.com
+After=NetworkManager.service
+Wants=NetworkManager.service
+# Deliberately NO network-online.target: this service must run precisely WHEN the box is offline.
+# Deliberately NO ConditionPathExists=config.json: a wrong-WiFi + fleet-claimed Pi never gets claimed,
+#   so the connector agent never starts; recovery must run pre-claim, with no config gate.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=autopost
+Group=autopost
+WorkingDirectory=/opt/autopost/connector
+Environment=CONNECTOR_RUNTIME_DIR=/var/lib/autopost/runtime
+Environment=CONNECTOR_CONFIG=/var/lib/autopost/config.json
+ExecStart=/usr/bin/node /opt/autopost/connector/src/wifi-recovery.js
+Restart=always
+RestartSec=5
+# Bind :80 as the unprivileged autopost user (OS captive-portal probes hit port 80).
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+# nmcli talks to NetworkManager over D-Bus (AF_UNIX) and we bind an AP-side socket; keep this lighter than the
+# connector unit (which restricts address families) so the portal + nmcli both work.
+ReadWritePaths=/var/lib/autopost
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
