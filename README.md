@@ -63,6 +63,8 @@ This is the first batch of material; more is on the way.
 | `keep-alive/Uninstall-KeepAlive.ps1` | Removes the scheduled task. |
 | `keep-alive/keep-alive.ps1` | The watchdog itself: restarts AutoPost when missing, or when running but wedged (heartbeat older than 90s). |
 | `keep-alive/run-hidden.vbs` | Invisible launcher so the watchdog never flashes a console window. |
+| `build/icon.png` | The packaged Windows app icon (256x256), referenced by both packaging configs. |
+| `build/installer.nsh` | Windows installer hooks: registers the keep-alive scheduled task on install, removes it on uninstall. |
 | `flasher/index.html` | The VA-facing "Set up a Pi" screen: card picker, WiFi, claim code, dry run and flash progress. |
 | `flasher/main-flasher.js` | Electron main-process side: drive scan, safety filter, dry run, batch confirmation, spawns the elevated writer. |
 | `flasher/preload.js` | The only bridge between the flasher screen and the main process (scan, dry run, flash, verify, progress). |

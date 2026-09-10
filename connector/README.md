@@ -70,3 +70,10 @@ Packaging to a single `.exe` + Windows-service install come after the data-plane
 `server/` holds the tunnel server this agent dials into: control WS, fail-closed CONNECT proxy,
 claim-code onboarding, hot dealership store and a localhost admin API. See `server/README.md`.
 End-to-end claim test: `cd server && npm install && node test-claim-flow.js` (21/21 passing).
+
+## Packaging assets (`build/`)
+
+- `build/icon.png` — 256x256 app icon used by `package.json` (`build.win.icon`) and `electron-builder-flasher.json`.
+- `build/installer.nsh` — NSIS hooks. On install it runs `Install-KeepAlive.ps1` as the installing user (no admin); on uninstall it runs `Uninstall-KeepAlive.ps1`.
+
+Known mismatch to resolve before the first real build: the installer script and `package.json`'s `files` list expect the supervisor at `resources/app/supervisor/`, but the scripts currently live in `connector/keep-alive/`. Either rename the folder to `supervisor/` or update both references.
