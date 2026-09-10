@@ -41,6 +41,6 @@ rem set "AUTOPOST_USB_GADGET=0"
 
 rem --- Tailscale fleet key (reusable, tagged) so every shipped Pi self-joins the
 rem     tailnet for remote SSH recall.
-set "AUTOPOST_TS_AUTHKEY=tskey-auth-kmM6h6Y27V11CNTRL-PoYeNFHgngPUFyMTGynmhPvwdCei8S88X"
+set "AUTOPOST_TS_AUTHKEY=REDACTED-SET-LOCALLY"
 
 exit /b 0
