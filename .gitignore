@@ -41,3 +41,7 @@ connector/dealerships.json
 connector/dealerships.json.*
 connector/server/dealerships.json
 connector/server/dealerships.json.*
+
+# Python bytecode caches (auto-generated from deploy/pi/*.py — never commit)
+__pycache__/
+*.pyc
