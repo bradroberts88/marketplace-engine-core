@@ -43,6 +43,10 @@ This is the first batch of material; more is on the way.
 | `src/claim.js` | First-run self-provisioning client: redeems a one-time setup code and writes `config.json` durably. |
 | `src/dashboard.js` | Local 127.0.0.1 status dashboard: tunnel health, public IP/geo/latency probe, rep list. |
 | `src/tunnel.js` | Data-plane egress with the LAN-isolation guard (blocks private/loopback/link-local/CGNAT, IPv4 + IPv6, fail closed). |
+| `src/wifi-recovery.js` | On-device WiFi rescue daemon (`autopost-wifi-recovery.service`): raises an "AutoPost-Setup" access point with a captive setup page when a unit is stranded on wrong WiFi credentials. |
+| `src/_test/planned-refresh.test.js` | Guards the pre-cap link-refresh gate (the 2026-08-17 mid-session cuts). |
+| `src/_test/config-resilience.test.js` | Guards the zero-length `config.json` deadlock fixes (the 2026-08-30 field failure). |
+| `src/_test/wifi-recovery.test.js` | Unit tests for the WiFi-recovery helpers and its single-radio, never-strand state machine. |
 | `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
 | `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
 | `firstrun-ui.js` | First-run setup screen: redeems a one-time setup code against the claim endpoint and writes `config.json`. |
