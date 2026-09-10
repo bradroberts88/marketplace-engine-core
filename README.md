@@ -86,6 +86,18 @@ This is the first batch of material; more is on the way.
 | `flasher/_test/ui-batch.test.js` | Drives the real setup-screen script against a stub DOM: lanes, progress, one code per card. |
 | `flasher/_test/write-probe.js` | Elevated bench probe: proves the raw disk opens with the Buffer device path. Opens only, writes nothing. |
 | `flasher/_test/write-proof.js` | Elevated bench proof: writes and verifies a small test image on a real card. |
+| `install/install-connector.ps1` | Admin PowerShell installer: registers the `DealershipConnector` scheduled task (boot-start, hidden, restart-on-failure). |
+| `install/run-agent.cmd` | Supervisor loop the task launches; relaunches the agent 5s after any exit. |
+| `install/uninstall-connector.ps1` | Removes the scheduled task and stops any running agent. |
+| `scripts/sign-build.js` | Signs an agent build with the operator's Ed25519 private key and writes a detached `.sig` the agent verifies before updating. |
+| `server/README.md` | The VPS-side tunnel server: what it does, the fail-closed guarantee, config table and test-vs-production topology. |
+| `server/package.json` / `server/package-lock.json` | Node manifest and lockfile for `dealership-tunnel-server` (only dependency: `ws`). |
+| `server/config.example.json` | Template for the server `config.json`: control/proxy/admin/claim ports, allow-lists, claim-code onboarding (placeholders only). |
+| `server/test-claim-flow.js` | End-to-end claim-code test on loopback: create, claim, connect, every rejection path, token rotate/revoke force-disconnect. |
+| `server/.gitignore` | Keeps the server's `node_modules/`, `config.json` and logs out of the repository. |
+
+`server/src/index.js` — the tunnel server itself — has not been uploaded yet, so
+`server/test-claim-flow.js` cannot run until it lands.
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
