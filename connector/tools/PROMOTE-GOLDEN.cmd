@@ -36,6 +36,9 @@ if not exist "%SRC%\" (
 rem --- date stamp for the archive name (YYYYMMDD, locale-independent) ---------
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd"') do set "STAMP=%%i"
 
+rem --- WSL path of THIS folder, derived, never hardcoded to one machine ------
+for /f "usebackq delims=" %%i in (`wsl.exe -e wslpath -a "%CD%"`) do set "WSLROOT=%%i"
+
 set "FOUND=0"
 for %%N in (autopost-golden autopost-golden-zerow) do (
   if exist "%SRC%\%%N.img.xz" (
