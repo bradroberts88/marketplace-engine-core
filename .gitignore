@@ -39,3 +39,5 @@ bench/bench-settings.cmd
 connector/config.json
 connector/dealerships.json
 connector/dealerships.json.*
+connector/server/dealerships.json
+connector/server/dealerships.json.*
