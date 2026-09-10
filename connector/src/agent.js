@@ -41,13 +41,50 @@ function emergencyRollbackAndExit(err) {
 }
 
 const CFG_PATH = process.env.CONNECTOR_CONFIG || path.join(__dirname, '..', 'config.json');
+
+// Durable JSON write: temp -> fsync the DATA -> rename -> fsync the DIRECTORY.
+//
+// writeFileSync+renameSync is atomic for READERS but says nothing about durability: the rename can reach the
+// disk while the data it points at is still in page cache. Cut the power inside that window and ext4 hands
+// back a ZERO-LENGTH file. Not theoretical — that is exactly how a fielded unit lost its config.json on
+// 2026-08-30, after which it could neither start (invalid JSON) nor re-claim (an empty file still satisfied
+// the old ConditionPathExists). Every config write goes through here now.
+function writeJsonDurable(file, obj, mode) {
+  const tmp = file + '.tmp';
+  const data = JSON.stringify(obj, null, 2);
+  const fd = fs.openSync(tmp, 'w', mode === undefined ? 0o600 : mode);
+  try { fs.writeSync(fd, data); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  fs.renameSync(tmp, file);
+  // Durability of the rename itself needs the parent directory synced. Opening a directory is not permitted on
+  // Windows (the agent runs there too), so this is best-effort BY DESIGN, not by oversight.
+  try { const d = fs.openSync(path.dirname(file), 'r'); try { fs.fsyncSync(d); } finally { fs.closeSync(d); } } catch (_) { /* not supported here */ }
+}
+
 function loadConfig() {
-  try { return JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
+  try {
+    const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
+    // Seed the backup on the FIRST good load, not only when the hub pushes a config. A unit that never
+    // receives a push had no .bak at all, so the recovery below had nothing to recover from — which is why
+    // the 2026-08-30 failure was unrecoverable in the field.
+    try { if (!fs.existsSync(CFG_PATH + '.bak')) writeJsonDurable(CFG_PATH + '.bak', c, 0o600); } catch (_) { /* best effort */ }
+    return c;
+  }
   catch (e) {
     // Self-heal a truncated/corrupt config (e.g. a power loss mid-write) from the backup onConfig keeps, so a
     // bad config can never permanently wedge the agent into a crash loop.
     try { const c = JSON.parse(fs.readFileSync(CFG_PATH + '.bak', 'utf8')); console.error('config.json invalid — recovered from config.json.bak'); try { fs.copyFileSync(CFG_PATH + '.bak', CFG_PATH); } catch (_) { /* ignore */ } return c; } catch (_) { /* no usable backup */ }
-    console.error('config.json missing/invalid — copy config.example.json to config.json and fill it in:', e.message); process.exit(1);
+    // QUARANTINE. With no backup, an unparseable config must NOT be left in place: autopost-connector starts
+    // on it and dies, while autopost-claim is skipped BECAUSE it is there — the unit is bricked in the field
+    // with no way back. Renaming it aside makes the claim service's condition true again, so the next boot
+    // re-provisions instead of crash-looping forever. ConditionFileNotEmpty covers the zero-byte case; this
+    // covers non-empty-but-invalid (a partial write), which no systemd condition can detect.
+    try {
+      if (fs.existsSync(CFG_PATH)) {
+        fs.renameSync(CFG_PATH, CFG_PATH + '.corrupt');
+        console.error('config.json unparseable and no usable backup — quarantined to config.json.corrupt so the claim service can re-provision on next boot');
+      }
+    } catch (_) { /* ignore */ }
+    console.error('config.json missing/invalid — the unit will attempt to re-claim on next boot:', e.message); process.exit(1);
   }
 }
 
@@ -463,7 +500,7 @@ function onConfig(c) {
     }
     Object.assign(cur, changed);
     try { fs.copyFileSync(CFG_PATH, CFG_PATH + '.bak'); } catch (_) { /* best effort */ }
-    const tmp = CFG_PATH + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(cur, null, 2)); fs.renameSync(tmp, CFG_PATH); // atomic
+    writeJsonDurable(CFG_PATH, cur); // atomic AND durable — see writeJsonDurable
     log('remote config APPLIED: ' + JSON.stringify(changed) + ' — restarting to load it');
     send({ type: 'config-result', ok: true, applied: Object.keys(changed) });
     setTimeout(() => { try { ws && ws.close(1000, 'config'); } catch (_) { /* ignore */ } process.exit(0); }, 400);
@@ -521,7 +558,7 @@ function onUpdate(m) {
     if (!bakOk) { try { fs.unlinkSync(tmp); } catch (_) { /* ignore */ } log('update REJECTED: could not create a verified rollback backup — keeping current code'); send({ type: 'update-result', ok: false, reason: 'backup_failed' }); return; }
     fs.renameSync(tmp, self); // commit (atomic on same dir)
     // Stamp the new version into config so the agent reports it on reconnect (confirms which build actually booted).
-    try { const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); c.agentVersion = m.version || c.agentVersion; const ct = CFG_PATH + '.tmp'; fs.writeFileSync(ct, JSON.stringify(c, null, 2)); fs.renameSync(ct, CFG_PATH); } catch (_) { /* non-fatal */ }
+    try { const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); c.agentVersion = m.version || c.agentVersion; writeJsonDurable(CFG_PATH, c); } catch (_) { /* non-fatal */ }
     log(`update APPLIED: wrote ${buf.length} bytes -> ${self} (version ${m.version || '?'}). Restarting to load it.`);
     send({ type: 'update-result', ok: true, version: m.version || null });
     setTimeout(() => { try { ws && ws.close(1000, 'update'); } catch (_) { /* ignore */ } process.exit(0); }, 400);
@@ -681,7 +718,7 @@ function recordBootAndMaybeRollback() {
         log(`crash-loop detected (${hist.length} restarts in ${Math.round(CRASH_LOOP_WINDOW_MS / 1000)}s) — rolled back: ${restored.join(', ')}`);
         try { fs.unlinkSync(BOOT_HISTORY_FILE); } catch (_) { /* reset so the restored build starts clean */ }
         // Stamp a visible marker so the hub's version column shows a rollback happened.
-        try { const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); c.agentVersion = 'rolled-back'; const ct = CFG_PATH + '.tmp'; fs.writeFileSync(ct, JSON.stringify(c, null, 2)); fs.renameSync(ct, CFG_PATH); } catch (_) { /* non-fatal */ }
+        try { const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); c.agentVersion = 'rolled-back'; writeJsonDurable(CFG_PATH, c); } catch (_) { /* non-fatal */ }
         try { writeHeartbeat({ rolledBack: true }); } catch (_) { /* ignore */ }
         process.exit(0); // clean exit -> supervisor relaunches the restored (good) code
       } else {
