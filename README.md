@@ -58,6 +58,11 @@ This is the first batch of material; more is on the way.
 | `Start_Dashboard.cmd` | Windows launcher: starts the preview dashboard and opens it in the browser. |
 | `config.example.json` | Template for the per-dealership `config.json` (placeholders only). |
 | `dashboard-preview.html` | Static preview of the status dashboard styling. |
+| `keep-alive/README.md` | The always-on supervisor: what it restarts, the heartbeat health check, and the one permitted user-stop. |
+| `keep-alive/Install-KeepAlive.ps1` | Installs the per-user "AutoPost Keep-Alive" scheduled task (no admin; at logon + every minute; runs on battery). |
+| `keep-alive/Uninstall-KeepAlive.ps1` | Removes the scheduled task. |
+| `keep-alive/keep-alive.ps1` | The watchdog itself: restarts AutoPost when missing, or when running but wedged (heartbeat older than 90s). |
+| `keep-alive/run-hidden.vbs` | Invisible launcher so the watchdog never flashes a console window. |
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
