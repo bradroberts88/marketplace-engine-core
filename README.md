@@ -96,10 +96,12 @@ passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-con
 and `autopost-claim.service`, which have not been added to the repository yet.
 
 The flasher tests run the same way (`node flasher/_test/<name>.test.js`). Current state:
-`safety` 16/16, `inject` 49/49, `nowifi` 10/10 and `confirm-batch` 10/10 pass with no
-dependencies. `batch` and `pi-model` need Electron installed (they load `main-flasher.js`,
-which requires `electron`), and `electron-load-test.js`, `build-plan.js`, `do-inject.js`
-and `path-mangle-test.js` are bench helpers that need real hardware or a flashed card.
+`safety` 16/16, `inject` 49/49, `nowifi` 10/10, `confirm-batch` 10/10, `sha512crypt` 14/14
+and `ui-batch` 35/35 pass with no dependencies. `batch` and `pi-model` need Electron
+installed (they load `main-flasher.js`, which requires `electron`). `ssh-hardening` needs
+`connector/deploy/pi/install.sh`, which has not been added yet. `electron-load-test.js`,
+`build-plan.js`, `do-inject.js`, `path-mangle-test.js`, `write-probe.js` and
+`write-proof.js` are bench helpers that need real hardware or a flashed card.
 
 
 
