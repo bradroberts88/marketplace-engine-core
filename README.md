@@ -97,6 +97,7 @@ This is the first batch of material; more is on the way.
 | `server/src/dealership-store.js` | Hot JSON store for dealership identity: agent tokens, proxy credentials and one-time Crockford claim codes; atomic writes. |
 | `server/src/claim-server.js` | The single public first-run endpoint (`POST /claim`, `GET /health`) with per-IP and global rate limits. |
 | `server/src/admin-api.js` | Localhost-only, token-authenticated admin HTTP: status, events, pause/resume, restart, create/reissue/rotate/revoke dealerships. |
+| `server/src/_test/health-alerts.test.js` | Hub alert de-duping across link refreshes plus the planned-vs-real disconnect distinction. |
 | `server/README.md` | The VPS-side tunnel server: what it does, the fail-closed guarantee, config table and test-vs-production topology. |
 | `server/package.json` / `server/package-lock.json` | Node manifest and lockfile for `dealership-tunnel-server` (only dependency: `ws`). |
 | `server/config.example.json` | Template for the server `config.json`: control/proxy/admin/claim ports, allow-lists, claim-code onboarding (placeholders only). |
@@ -104,7 +105,8 @@ This is the first batch of material; more is on the way.
 | `server/.gitignore` | Keeps the server's `node_modules/`, `config.json` and logs out of the repository. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
-it currently passes 21/21 on loopback.
+it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
+with no dependencies.
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
