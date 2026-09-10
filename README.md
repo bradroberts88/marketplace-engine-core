@@ -134,9 +134,9 @@ The agent expects a real `config.json` at runtime; it is git-ignored and never c
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
-Current state: `planned-refresh` 13/13 and `wifi-recovery` 87/87 pass. `config-resilience`
-passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-connector.service`
-and `autopost-claim.service`, the two systemd units, which have not been added yet.
+Current state: `planned-refresh` 13/13, `wifi-recovery` 87/87 and `config-resilience` 8/8 pass
+(the last three checks now read the `autopost-connector.service` and `autopost-claim.service`
+systemd units in `connector/deploy/pi/`).
 
 The flasher tests run the same way (`node flasher/_test/<name>.test.js`). Current state:
 `safety` 16/16, `inject` 49/49, `nowifi` 10/10, `confirm-batch` 10/10, `sha512crypt` 14/14,
