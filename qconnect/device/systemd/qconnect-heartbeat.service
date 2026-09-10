@@ -1,0 +1,7 @@
+[Unit]
+Description=QConnect heartbeat
+ConditionPathExists=/opt/qconnect/state/provisioned
+
+[Service]
+Type=oneshot
+ExecStart=/opt/qconnect/qconnect-heartbeat.sh

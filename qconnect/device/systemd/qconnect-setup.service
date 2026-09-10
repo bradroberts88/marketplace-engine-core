@@ -1,0 +1,15 @@
+[Unit]
+Description=QConnect zero-touch provisioning
+After=NetworkManager.service
+Wants=NetworkManager.service
+ConditionPathExists=!/opt/qconnect/state/provisioned
+
+[Service]
+Type=oneshot
+ExecStart=/opt/qconnect/qconnect-setup.sh
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
