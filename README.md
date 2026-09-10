@@ -140,6 +140,7 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/golden/pi-gen.config` | pi-gen settings for the image: arm64 Bookworm Lite, headless, FAT boot partition kept for flasher injection. |
 | `deploy/pi/golden/stage-autopost/prerun.sh` | pi-gen stage guard: copies the previous stage's rootfs before the AutoPost layer is applied. |
 | `deploy/pi/golden/stage-autopost/00-install-connector/` | The pi-gen install stage: packages, host-side staging and the chroot script — deliberately refuses to run (see below). |
+| `deploy/pi/golden/stage-autopost/01-data-and-overlay/` | Second pi-gen stage: fstab entry for `AUTOPOST-DATA`, WiFi country, EEPROM pin, NetworkManager profiles moved onto the data partition, and the read-only rootfs overlay baked last. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
@@ -152,7 +153,9 @@ The golden-image kit is a recipe, not a built artifact: nothing in it has been r
 pi-gen or certified on hardware yet. `customize-stock-image.sh` is the real shipping path.
 The pi-gen route is stale on purpose — its chroot script exits with an error unless
 `ALLOW_STALE_PIGEN_STAGE=1` is set, because it would build an image with no WiFi or Bluetooth
-rescue, and its second stage folder `stage-autopost/01-data-and-overlay/` has not been added.
+rescue. The second stage folder `stage-autopost/01-data-and-overlay/` is now present; it must
+run after every other image change, since the overlay has to be baked last.
+
 
 Run the tests from `connector/` with `node src/_test/<name>.test.js`; they need no dependencies.
 Current state: `planned-refresh` 13/13, `wifi-recovery` 87/87 and `config-resilience` 8/8 pass
