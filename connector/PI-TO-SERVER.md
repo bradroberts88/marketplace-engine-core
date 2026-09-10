@@ -97,3 +97,25 @@ Step 7 is the safety claim: with the agent dead the proxy refuses. There is no s
 | Agent never reaches the server | Device on the wrong WiFi | `AutoPost-Setup` captive page or BLE rescue — see `deploy/pi/WIFI-RESCUE.md` |
 | Proxy returns 503 while the Pi looks online | Heartbeat older than `heartbeatTimeoutMs` | Check the Pi's uplink; this is fail-closed working as designed |
 | Proxy returns 407 | Wrong rep proxy credentials | Re-read them from the admin API; they never live on the device |
+
+## Reporting device status to the hub
+
+Separately from the tunnel control channel, a unit reports its health to the Marketplace Engine hub
+so the fleet is visible without SSH:
+
+```
+POST /api/public/device-heartbeat
+{
+  "deviceToken": "<64-hex, injected at flash time>",
+  "status": "online",
+  "agentVersion": "0.1.0",
+  "publicIp": "203.0.113.9",
+  "latencyMs": 42,
+  "event": { "type": "claim", "severity": "info", "message": "first boot claim" }
+}
+```
+
+The token is stored hub-side only as a SHA-256 hash; the plain value is shown once, when the device
+is registered. Responses: `200 {ok, deviceId, receivedAt}`, `400 invalid_payload`,
+`401 unknown_device`, `403 device_retired`. Each call refreshes the device row and appends an
+immutable row to its event history.
