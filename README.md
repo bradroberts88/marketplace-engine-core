@@ -140,6 +140,7 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/golden/pi-gen.config` | pi-gen settings for the image: arm64 Bookworm Lite, headless, FAT boot partition kept for flasher injection. |
 | `deploy/pi/golden/stage-autopost/prerun.sh` | pi-gen stage guard: copies the previous stage's rootfs before the AutoPost layer is applied. |
 | `deploy/pi/golden/stage-autopost/00-install-connector/` | The pi-gen install stage: packages, host-side staging and the chroot script — deliberately refuses to run (see below). |
+| `deploy/pi/golden/stage-autopost/01-data-and-overlay/` | Second pi-gen stage: fstab entry for `AUTOPOST-DATA`, WiFi country, EEPROM pin, NetworkManager profiles moved onto the data partition, and the read-only rootfs overlay baked last. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
