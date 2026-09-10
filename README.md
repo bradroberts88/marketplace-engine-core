@@ -31,6 +31,19 @@ This is the first batch of material; more is on the way.
 | `START-HERE.bat` | Launcher: preflight checks, prerequisites, bench settings, starts the app. |
 | `bench-settings.example.cmd` | Template for bench settings. Copy to `bench-settings.cmd` and fill in. |
 
+### connector/
+
+| File | Purpose |
+|---|---|
+| `src/agent.js` | The connector agent: dials out to the control server over WSS, relays rep streams, heartbeat, remote config, auto-update with rollback. |
+| `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
+| `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |
+| `config.example.json` | Template for the per-dealership `config.json` (placeholders only). |
+| `dashboard-preview.html` | Static preview of the status dashboard styling. |
+
+The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
+Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
+
 ### Required third-party tool
 
 The flashing guide uses **Raspberry Pi Imager**. It is not stored in this repository
