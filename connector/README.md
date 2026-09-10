@@ -65,3 +65,8 @@ cp config.example.json config.json   # fill in controlUrl + dealershipToken
 npm start                             # runs the agent in the foreground for testing
 ```
 Packaging to a single `.exe` + Windows-service install come after the data-plane + VPS side are proven.
+
+## Server (VPS side)
+`server/` holds the tunnel server this agent dials into: control WS, fail-closed CONNECT proxy,
+claim-code onboarding, hot dealership store and a localhost admin API. See `server/README.md`.
+End-to-end claim test: `cd server && npm install && node test-claim-flow.js` (21/21 passing).
