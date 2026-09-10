@@ -149,6 +149,12 @@ This is the first batch of material; more is on the way.
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
 with no dependencies.
 
+The two scripts in `connector/tools/` are written for the operator's consolidated bench
+layout — a folder holding `source\`, `images\`, `images-rebuilt\` and `app\` — and are run
+from there, not from this repo's folder structure. `PROMOTE-GOLDEN.cmd` now derives its WSL
+path from wherever it is run instead of a hardcoded personal desktop path.
+
+
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
 
