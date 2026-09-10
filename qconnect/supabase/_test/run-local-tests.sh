@@ -18,10 +18,10 @@ createdb -h $D -U pg qc
 psql -h $D -U pg -q -d qc -f $HERE/prelude.sql
 for f in 01-schema-hardened 02-admin-killswitch-audit 03-token-hashing 04-bench-tests; do
   echo "== $f"
-  psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f ${SQL_DIR:-'..'}/$f.sql && echo "   OK"
+  psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $SQL_DIR/$f.sql && echo "   OK"
   echo "== $f (re-run, idempotency)"
-  psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f ${SQL_DIR:-'..'}/$f.sql && echo "   OK"
+  psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $SQL_DIR/$f.sql && echo "   OK"
 done
 echo "== smoke test"
-psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $D/smoke.sql
+psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $HERE/smoke.sql
 pg_ctl -D $D/data stop > /dev/null
