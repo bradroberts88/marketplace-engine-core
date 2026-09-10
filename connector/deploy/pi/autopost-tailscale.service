@@ -1,0 +1,29 @@
+# AutoPost first-boot Tailscale join — the UNATTENDED SSH recall path. The dealership NEVER types a command: the
+# flasher drops /boot/firmware/autopost-tailscale.env (a reusable, tagged auth key + the per-device hostname) and
+# this oneshot runs `tailscale up --ssh` on the real boot, so the box becomes reachable at autopost-<dealership> on
+# the tailnet from anywhere, through their NAT, with no port-forwarding. Idempotent; the node state is persisted on
+# the AUTOPOST-DATA partition (the golden image symlinks /var/lib/tailscale onto it), so it stays joined across
+# reboots + the read-only overlay instead of re-joining as a NEW node every boot. On a card with no key file (a
+# non-golden or unconfigured flash) the ConditionPathExists below skips it — harmless no-op.
+
+[Unit]
+Description=AutoPost first-boot Tailscale join (SSH recall path)
+After=network-online.target tailscaled.service
+Wants=network-online.target tailscaled.service
+ConditionPathExists=/boot/firmware/autopost-tailscale.env
+
+[Service]
+Type=oneshot
+EnvironmentFile=/boot/firmware/autopost-tailscale.env
+# Empty key => no-op (never fall into an interactive `tailscale up`). --hostname falls back to the OS hostname.
+# --accept-dns=false so the dealership's own DNS/route is never altered. Runs as root (needs the tailscaled ctl socket).
+# NOTE: $$ escapes systemd's own variable-expansion so the SHELL expands the env vars, the ${:-default}, and the
+# $(hostname) command substitution — not systemd (which supports none of that syntax and would mangle the line).
+ExecStart=/bin/sh -c '[ -n "$$TS_AUTHKEY" ] || exit 0; exec /usr/bin/tailscale up --ssh --authkey "$$TS_AUTHKEY" --hostname "$${TS_HOSTNAME:-$$(hostname)}" --accept-dns=false'
+# A fresh dealership's internet may not be up at first boot; keep retrying until the join lands. Idempotent once up.
+Restart=on-failure
+RestartSec=30
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
