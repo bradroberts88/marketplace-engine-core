@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 /*
  * Device heartbeat ingestion. Called by the connector agent on the Pi or the
