@@ -125,6 +125,19 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/autopost-ble-setup.service` | Unit for the BLE rescue: unprivileged, no network or claim gating, so it runs on a box that never got online. |
 | `deploy/pi/50-autopost-nm.rules` | Polkit rule granting the `autopost` user NetworkManager actions only, so "Set WiFi" works without root. |
 | `deploy/pi/60-autopost-bluez.conf` | D-Bus policy naming the `autopost` user for BlueZ access, independent of the distro's `bluetooth` group stanza. |
+| `deploy/pi/autopost-connector.service` | The 24/7 connector unit: restarts on any exit, waits for `config.json`, keeps all writes on the data partition. |
+| `deploy/pi/autopost-claim.service` | First-boot self-provisioning from a claim code on the boot partition; starts the connector the moment it succeeds. |
+| `deploy/pi/autopost-wifi-recovery.service` | The captive-portal rescue unit; deliberately ungated by network or claim so it runs on an offline box. |
+| `deploy/pi/autopost-tailscale.service` | Unattended first-boot Tailscale join for remote recall, skipped when no key file is present. |
+| `deploy/pi/autopost-captive-dnsmasq.conf` | Points every DNS lookup at the rescue portal so the "Sign in to network" sheet pops by itself. |
+| `deploy/pi/autopost-usb-gadget.sh` | Brings up the USB ethernet gadget with pinned MACs; generated from the flasher, editable on the card. |
+| `deploy/pi/ble-setup-page.html` | Self-contained Web Bluetooth setup page; works everywhere except iPhone and iPad, where nRF Connect is the fallback. |
+| `deploy/pi/DAY-1-CHECKLIST.md` | The ~30-minute box-to-Live walkthrough for the pilot device. |
+| `deploy/pi/golden/README.md` | The golden-image build kit: why the separate data partition exists, how to build and what must be certified first. |
+| `deploy/pi/golden/build-golden.sh` | Orchestrates the build: package the connector, fetch pi-gen, build the rootfs, append the data partition. |
+| `deploy/pi/golden/append-data-partition.sh` | Adds and seeds the third `AUTOPOST-DATA` partition so identity and updates survive the read-only overlay. |
+| `deploy/pi/golden/customize-stock-image.sh` | Faster path: bakes the connector into the stock Pi OS Lite image in a chroot, with an ARMv6 variant for the Pi Zero W. |
+| `deploy/pi/golden/pi-gen.config` | pi-gen settings for the image: arm64 Bookworm Lite, headless, FAT boot partition kept for flasher injection. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
