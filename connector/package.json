@@ -11,6 +11,8 @@
     "app": "electron .",
     "flasher": "electron . --flasher",
     "flasher:test": "node flasher/_test/safety.test.js && node flasher/_test/inject.test.js && node flasher/_test/pi-model.test.js && node flasher/_test/batch.test.js && node flasher/_test/ui-batch.test.js",
+    "e2e:pi": "node e2e-pi.js",
+    "claim:test": "node server/test-claim-flow.js",
     "dist": "electron-builder --win",
     "dist:flasher": "electron-builder --win --x64 --config electron-builder-flasher.json"
   },
