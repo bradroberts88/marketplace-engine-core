@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/public/device-heartbeat")({
         if (device.status === "retired") return json({ error: "device_retired" }, 403);
 
         const now = new Date().toISOString();
-        const patch: Record<string, string | number | null> = {
+        const patch: TablesUpdate<"devices"> = {
           status: parsed.status,
           last_heartbeat_at: now,
         };
