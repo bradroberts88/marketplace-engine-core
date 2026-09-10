@@ -45,3 +45,13 @@ connector/server/dealerships.json.*
 # Python bytecode caches (auto-generated from deploy/pi/*.py — never commit)
 __pycache__/
 *.pyc
+
+# Packaged Electron runtime shipped alongside the built flasher app (Chromium/Vulkan/ffmpeg
+# binaries and resource blobs). These come out of electron-builder — never source, never committed.
+*.dll
+*.pak
+*.dat
+*.bin
+vk_swiftshader_icd.json
+LICENSES.chromium.html
+locales/
