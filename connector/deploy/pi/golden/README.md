@@ -1,5 +1,48 @@
 # AutoPost Pi — Golden Image build kit
 
+## Download the shipped image
+
+Built images are published as GitHub release assets, never committed to git.
+
+**Release:** [`autpost-golden`](https://github.com/bradroberts88/marketplace-engine-core/releases/tag/autpost-golden)
+(published 10/09/2026 — tag spelling is intentional)
+
+| Image | Target hardware | Size | Download |
+|---|---|---|---|
+| `autopost-golden.img.xz` | Pi 4 class, arm64 | 616 MB | [download](https://github.com/bradroberts88/marketplace-engine-core/releases/download/autpost-golden/autopost-golden.img.xz) |
+| `autopost-golden-zerow.img.xz` | Pi Zero W / Pi 1, armhf (boots on every Pi) | 636 MB | [download](https://github.com/bradroberts88/marketplace-engine-core/releases/download/autpost-golden/autopost-golden-zerow.img.xz) |
+
+Versioned (tag-pinned) URLs — these always resolve to this exact build:
+
+```text
+https://github.com/bradroberts88/marketplace-engine-core/releases/download/autpost-golden/autopost-golden.img.xz
+https://github.com/bradroberts88/marketplace-engine-core/releases/download/autpost-golden/autopost-golden-zerow.img.xz
+```
+
+### Verify before flashing (mandatory)
+
+| Asset | SHA256 |
+|---|---|
+| `autopost-golden.img.xz` | `430df52d46965a1ec501ccdd2d21666fe0ae410fd2d8e14f45f75cf3ccb520ac` |
+| `autopost-golden-zerow.img.xz` | `618c6c8a3fa0d4ad5ca3be23e02efb2821fdfeba645038f9c5c393caa8d9c9be` |
+
+```powershell
+# Windows (PowerShell), from the folder holding the download
+Get-FileHash .\autopost-golden.img.xz -Algorithm SHA256 | Format-List
+```
+
+```bash
+# WSL2 / Linux / macOS
+sha256sum autopost-golden.img.xz
+```
+
+If the hash does not match the table, delete the file and download it again. Do not flash it.
+
+To build a new image yourself, follow [BUILD-RUNBOOK.md](./BUILD-RUNBOOK.md) — it is the exact
+command sequence, with expected output and the failures you are likely to hit.
+
+
+
 Turns [../GOLDEN-IMAGE-SPEC.md](../GOLDEN-IMAGE-SPEC.md) into a runnable **pi-gen** build. Output is a single
 `.img` the flasher writes with verify-on. It bakes in the connector, a **separate `AUTOPOST-DATA` ext4
 partition** (so identity/claim/updates survive the read-only overlay), and the overlay itself.

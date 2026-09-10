@@ -10,33 +10,44 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicDeviceHeartbeatRouteImport } from './routes/api/public/device-heartbeat'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDeviceHeartbeatRoute =
+  ApiPublicDeviceHeartbeatRouteImport.update({
+    id: '/api/public/device-heartbeat',
+    path: '/api/public/device-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/device-heartbeat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/device-heartbeat'
+  id: '__root__' | '/' | '/api/public/device-heartbeat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicDeviceHeartbeatRoute: typeof ApiPublicDeviceHeartbeatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +59,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/device-heartbeat': {
+      id: '/api/public/device-heartbeat'
+      path: '/api/public/device-heartbeat'
+      fullPath: '/api/public/device-heartbeat'
+      preLoaderRoute: typeof ApiPublicDeviceHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicDeviceHeartbeatRoute: ApiPublicDeviceHeartbeatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
