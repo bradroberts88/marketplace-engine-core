@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merchant Auto Connector — preview</title>
+<style>
+:root{--bg:#12162e;--bg2:#171d3a;--card:#1f2547;--card2:#252c54;--ink:#eef1fb;--muted:#98a1c9;--line:#2b3466;
+--accent:#8f9cf6;--accent2:#b9a5f4;--good:#43d6a0;--warn:#f4c36a;--bad:#f27a9c;--r:18px;--sh:0 14px 34px rgba(6,9,26,.45)}
+@media (prefers-color-scheme:light){:root{--bg:#eceffa;--bg2:#f5f7fd;--card:#ffffff;--card2:#f5f6fc;--ink:#1a2048;--muted:#5c6595;--line:#e4e7f4;--sh:0 12px 30px rgba(60,70,120,.14)}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 12% -8%,var(--bg2),var(--bg));color:var(--ink);
+font-family:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 26px 40px}
+.tabular{font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;font-weight:650;letter-spacing:.2px}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#0e1230;font-weight:800;box-shadow:0 4px 12px rgba(143,156,246,.4)}
+.brand small{display:block;color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.3px}
+.top-r{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--card)}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot.g{background:var(--good);box-shadow:0 0 0 4px rgba(67,214,160,.16)}.dot.a{background:var(--warn);box-shadow:0 0 0 4px rgba(244,195,106,.16)}.dot.b{background:var(--bad);box-shadow:0 0 0 4px rgba(242,122,156,.16)}
+.who{color:var(--muted);font-size:14px}.who b{color:var(--ink);font-weight:600}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);padding:7px 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}
+.ghost:hover{color:var(--ink);border-color:var(--accent)}
+.hero{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px}
+.h-main{background:linear-gradient(150deg,#20264d,#1a2044 55%,#181f4a);border:1px solid var(--line);border-radius:var(--r);padding:26px 28px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.h-main:after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(143,156,246,.28),transparent 70%)}
+.eyebrow{text-transform:uppercase;letter-spacing:1.4px;font-size:11px;color:#9aa4d6;font-weight:600}
+.ip{font-size:52px;font-weight:750;letter-spacing:-1px;margin:10px 0 4px;line-height:1;color:#ffffff}
+.h-sub{color:#b3bbe0;font-size:15px}.h-sub b{color:#ffffff;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;background:rgba(143,156,246,.14);color:var(--accent2);border:1px solid rgba(143,156,246,.3)}
+.h-side{display:grid;grid-template-rows:1fr 1fr;gap:16px}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);display:flex;flex-direction:column;justify-content:center}
+.metric .n{font-size:34px;font-weight:720;letter-spacing:-.5px;line-height:1}
+.metric .l{color:var(--muted);font-size:13px;margin-top:6px}
+.metric .n small{font-size:16px;font-weight:600;color:var(--muted);margin-left:3px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+.card .l{color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.6px}
+.card .v{font-size:22px;font-weight:680;margin-top:8px;letter-spacing:-.3px}
+.card .v .sub{font-size:13px;color:var(--muted);font-weight:500}
+.reps{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh)}
+.reps-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.reps-h h2{margin:0;font-size:16px;font-weight:680}.reps-h span{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.rep{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:13px;background:var(--card2);border:1px solid var(--line)}
+.rep .av{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#2c3566,#3a3f7a);display:grid;place-items:center;font-weight:650;font-size:13px;color:var(--ink);flex:none}
+.rep .nm{font-weight:600;font-size:14px;line-height:1.15}.rep .st{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px}
+.foot{margin-top:18px;color:var(--muted);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap}
+.foot b{color:var(--ink);font-weight:600}
+.note{max-width:1120px;margin:0 auto;padding:0 26px 26px;color:var(--muted);font-size:12.5px}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.ip{font-size:42px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="mark">&#9672;</div><div>Merchant Auto Connector<small>Marketplace Autopost</small></div></div>
+    <div class="top-r">
+      <span class="pill"><span class="dot g"></span>Connected</span>
+      <span class="who">Signed in as <b>E. Watson</b></span>
+      <button class="ghost">Sign out</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="h-main">
+      <div class="eyebrow">This location&rsquo;s connection</div>
+      <div class="ip tabular">99.253.46.73</div>
+      <div class="h-sub"><b>Toronto, Ontario</b> &middot; Rogers Communications</div>
+      <div class="tag"><span class="dot g"></span>Tunnel secured &mdash; traffic exits from this location</div>
+    </div>
+    <div class="h-side">
+      <div class="metric"><div class="n tabular">82<small>ms</small></div><div class="l">Latency to Facebook &middot; Good</div></div>
+      <div class="metric"><div class="n tabular">2</div><div class="l">Live rep sessions</div></div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="l">Location</div><div class="v">Toronto, Ontario</div></div>
+    <div class="card"><div class="l">Speed</div><div class="v">82 ms <span class="sub">Good</span></div></div>
+    <div class="card"><div class="l">Provider</div><div class="v">Rogers Communications</div></div>
+    <div class="card"><div class="l">Reps online</div><div class="v tabular">6<span class="sub"> / 6</span></div></div>
+  </div>
+
+  <div class="reps">
+    <div class="reps-h"><h2>Sales reps</h2><span>6 configured</span></div>
+    <div class="grid">
+      <div class="rep"><div class="av">KM</div><div><div class="nm">Kary McEmery</div><div class="st"><span class="dot g"></span>Active now</div></div></div>
+      <div class="rep"><div class="av">ML</div><div><div class="nm">Mark Luby</div><div class="st"><span class="dot g"></span>Active now</div></div></div>
+      <div class="rep"><div class="av">LP</div><div><div class="nm">Lisa Petrucelli</div><div class="st"><span class="dot g"></span>Ready</div></div></div>
+      <div class="rep"><div class="av">DT</div><div><div class="nm">Darryl Tavarez</div><div class="st"><span class="dot g"></span>Ready</div></div></div>
+      <div class="rep"><div class="av">MP</div><div><div class="nm">Mike Pergamo</div><div class="st"><span class="dot g"></span>Ready</div></div></div>
+      <div class="rep"><div class="av">TP</div><div><div class="nm">Toby Pena</div><div class="st"><span class="dot g"></span>Ready</div></div></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Uptime <b>3h 12m</b></span><span>Traffic <b>&uarr;3.4 MB &middot; &darr;46.1 MB</b></span><span>Requests <b class="tabular">148</b></span><span>updated just now</span></div>
+</div>
+<div class="note">Design preview with sample data. The live app (<code>npm run preview</code>) shows the real IP, location, speed, tunnel status, and reps.</div>
+</body>
+</html>

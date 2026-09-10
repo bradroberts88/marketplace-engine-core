@@ -1,0 +1,22 @@
+{
+  "controlUrl": "wss://REPLACE-WITH-VPS-HOST/agent",
+  "dealershipToken": "REPLACE-WITH-PER-DEALERSHIP-TOKEN",
+  "dealership": "Merchant Auto",
+  "reps": [
+    { "name": "Kary McEmery" },
+    { "name": "Mark Luby" },
+    { "name": "Lisa Petrucelli" }
+  ],
+  "dashboard": {
+    "port": 4599,
+    "user": "manager",
+    "pass": "REPLACE-WITH-A-STRONG-PASSWORD",
+    "displayName": "E. Watson"
+  },
+  "allowedHostSuffixes": ["facebook.com", "fbcdn.net", "fbsbx.com", "messenger.com", "facebook.net"],
+  "allowedPorts": [443],
+  "heartbeatMs": 20000,
+  "configPollMs": 300000,
+  "updateCheckMs": 3600000,
+  "agentVersion": "0.1.0"
+}

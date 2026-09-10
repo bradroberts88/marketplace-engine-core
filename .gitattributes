@@ -1,0 +1,5 @@
+# Pi ships to Linux — these MUST stay LF or bash/systemd choke on a Windows-checkout CR. (deep-analysis P1 gate: crlf_clean)
+*.sh            text eol=lf
+*.service       text eol=lf
+*.rules         text eol=lf
+deploy/pi/*     text eol=lf
