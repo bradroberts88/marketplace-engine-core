@@ -31,3 +31,6 @@ dist-ssr
 *.sln
 *.sw?
 bench/bench-settings.cmd
+
+# Third-party installers (download from vendor, do not commit)
+*.exe
