@@ -138,6 +138,7 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/golden/append-data-partition.sh` | Adds and seeds the third `AUTOPOST-DATA` partition so identity and updates survive the read-only overlay. |
 | `deploy/pi/golden/customize-stock-image.sh` | Faster path: bakes the connector into the stock Pi OS Lite image in a chroot, with an ARMv6 variant for the Pi Zero W. |
 | `deploy/pi/golden/pi-gen.config` | pi-gen settings for the image: arm64 Bookworm Lite, headless, FAT boot partition kept for flasher injection. |
+| `deploy/pi/golden/stage-autopost/prerun.sh` | pi-gen stage guard: copies the previous stage's rootfs before the AutoPost layer is applied. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
