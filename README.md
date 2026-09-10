@@ -141,6 +141,9 @@ This is the first batch of material; more is on the way.
 | `deploy/pi/golden/stage-autopost/prerun.sh` | pi-gen stage guard: copies the previous stage's rootfs before the AutoPost layer is applied. |
 | `deploy/pi/golden/stage-autopost/00-install-connector/` | The pi-gen install stage: packages, host-side staging and the chroot script — deliberately refuses to run (see below). |
 | `deploy/pi/golden/stage-autopost/01-data-and-overlay/` | Second pi-gen stage: fstab entry for `AUTOPOST-DATA`, WiFi country, EEPROM pin, NetworkManager profiles moved onto the data partition, and the read-only rootfs overlay baked last. |
+| `deploy/pi/USB-LINK.cmd` | Brings the PC side of the USB link up (10.55.0.2/24) and exits, for when a script — not a person — will SSH in. |
+| `tools/RUN-TESTS.cmd` | Runs every test in the tree with plain Node; the two Electron-dependent flasher tests report as SKIPPED rather than silently passing. |
+| `tools/PROMOTE-GOLDEN.cmd` | Promotes a rebuilt image from `images-rebuilt\` into `images\`: integrity check first, archives the outgoing image, keeps 32- and 64-bit apart. |
 
 `server/test-claim-flow.js` runs from `connector/server/` after `npm install` (needs `ws`);
 it currently passes 21/21 on loopback. `node src/_test/health-alerts.test.js` passes 13/13
