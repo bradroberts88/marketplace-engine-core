@@ -28,6 +28,12 @@ This is the first batch of material; more is on the way.
 | `START-HERE.bat` | Launcher: preflight checks, prerequisites, bench settings, starts the app. |
 | `bench-settings.example.cmd` | Template for bench settings. Copy to `bench-settings.cmd` and fill in. |
 
+### Required third-party tool
+
+The flashing guide uses **Raspberry Pi Imager**. It is not stored in this repository
+(`*.exe` is git-ignored); each bench machine downloads it from the official page:
+<https://www.raspberrypi.com/software/>.
+
 ## Secrets
 
 No real credentials live in this repository. `bench-settings.example.cmd` is a template:
