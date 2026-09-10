@@ -81,6 +81,11 @@ This is the first batch of material; more is on the way.
 | `flasher/_test/build-plan.js` | Builds a real plan file targeting an eligible card, for an end-to-end run of the writer. |
 | `flasher/_test/do-inject.js` | Injects the boot files into an already-flashed, mounted boot partition. |
 | `flasher/_test/path-mangle-test.js` | Checks whether Node mangles the `\\.\PhysicalDriveN` device path. |
+| `flasher/_test/sha512crypt.test.js` | Verifies the `$6$` hasher against the published specification vectors. |
+| `flasher/_test/ssh-hardening.test.js` | SSH hardening and secret-leak guards, including the lock-out interlock. Reads `connector/deploy/pi/install.sh`. |
+| `flasher/_test/ui-batch.test.js` | Drives the real setup-screen script against a stub DOM: lanes, progress, one code per card. |
+| `flasher/_test/write-probe.js` | Elevated bench probe: proves the raw disk opens with the Buffer device path. Opens only, writes nothing. |
+| `flasher/_test/write-proof.js` | Elevated bench proof: writes and verifies a small test image on a real card. |
 
 The agent expects a real `config.json` at runtime; it is git-ignored and never committed.
 Note: no `.sig` files are kept here — the one received was marked stale/do-not-use.
@@ -91,10 +96,12 @@ passes 5/8 — the three remaining checks read `connector/deploy/pi/autopost-con
 and `autopost-claim.service`, which have not been added to the repository yet.
 
 The flasher tests run the same way (`node flasher/_test/<name>.test.js`). Current state:
-`safety` 16/16, `inject` 49/49, `nowifi` 10/10 and `confirm-batch` 10/10 pass with no
-dependencies. `batch` and `pi-model` need Electron installed (they load `main-flasher.js`,
-which requires `electron`), and `electron-load-test.js`, `build-plan.js`, `do-inject.js`
-and `path-mangle-test.js` are bench helpers that need real hardware or a flashed card.
+`safety` 16/16, `inject` 49/49, `nowifi` 10/10, `confirm-batch` 10/10, `sha512crypt` 14/14
+and `ui-batch` 35/35 pass with no dependencies. `batch` and `pi-model` need Electron
+installed (they load `main-flasher.js`, which requires `electron`). `ssh-hardening` needs
+`connector/deploy/pi/install.sh`, which has not been added yet. `electron-load-test.js`,
+`build-plan.js`, `do-inject.js`, `path-mangle-test.js`, `write-probe.js` and
+`write-proof.js` are bench helpers that need real hardware or a flashed card.
 
 
 
