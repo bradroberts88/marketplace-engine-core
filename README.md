@@ -46,7 +46,9 @@ This is the first batch of material; more is on the way.
 | `preview-ui.js` | Dashboard preview with a mock tunnel (`node preview-ui.js`, sign in manager / preview). |
 | `firstrun-test.js` | End-to-end loopback test of the first-run setup flow against the real claim server. |
 | `never-drop-test.js` | Loopback test of the agent's liveness plumbing (hello, ping, heartbeat.json). |
+| `test-local.js` | Local smoke test: full tunnel end to end with no VPS — proves egress IP and fail-closed behavior. |
 | `Start_App.cmd` | Windows launcher: runs the Electron app, installing dependencies on first run. |
+| `Start_Dashboard.cmd` | Windows launcher: starts the preview dashboard and opens it in the browser. |
 | `config.example.json` | Template for the per-dealership `config.json` (placeholders only). |
 | `dashboard-preview.html` | Static preview of the status dashboard styling. |
 
