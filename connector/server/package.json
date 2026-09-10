@@ -1,0 +1,16 @@
+{
+  "name": "dealership-tunnel-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VPS-side (test-mode) counterpart to the dealership connector: a WS control server + a FAIL-CLOSED HTTP CONNECT proxy that tunnels a rep's FB traffic out through the dealership's own agent. Standalone — does NOT import from ../../production and is NOT wired into the pm2 stack.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

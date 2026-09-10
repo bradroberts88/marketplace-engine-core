@@ -1,0 +1,34 @@
+{
+  "_comment": "Copy to config.json and fill in. bindHost 127.0.0.1 = proxy reachable only from THIS machine (in prod, GoLogin runs on the SAME VPS as this server, so localhost is correct). controlPort takes the agent's outbound WS; in prod put it behind TLS (cloudflared/nginx) and the agent uses wss://.",
+  "controlPort": 8443,
+  "proxyPort": 1080,
+  "bindHost": "127.0.0.1",
+  "heartbeatTimeoutMs": 60000,
+  "allowedHostSuffixes": ["facebook.com", "fbcdn.net", "fbsbx.com", "messenger.com", "facebook.net"],
+  "allowedPorts": [443],
+  "adminPort": 8444,
+  "adminToken": "REPLACE-WITH-A-LONG-RANDOM-ADMIN-TOKEN",
+  "alertWebhook": "",
+  "alertWebhookToken": "",
+
+  "_rootfs_alert_comment": "Page when a Pi reports a WRITABLE rootfs? Leave false while the v1 golden image ships without the read-only overlay ON PURPOSE (deploy/pi/golden/customize-stock-image.sh) — otherwise every device in the fleet raises a permanent alert that can never clear and buries the real ones. Flip to true once the overlay actually ships, at which point a writable rootfs really is drift.",
+  "alertOnRootfsWritable": false,
+
+  "_claim_comment": "CLAIM-CODE ONBOARDING (DB-backed identity). With claimPort set, dealerships are added HOT via the admin API + a one-time claim code — no restart, no hand-edited dealerships[] below. storePath persists identities. publicControlUrl is the wss:// URL handed back to a claiming agent (what it dials); publicClaimUrl is echoed to the operator for convenience. Put claimPort behind TLS/nginx (POST /claim, GET /health) exactly like controlPort.",
+  "claimPort": 8445,
+  "storePath": "./dealerships.json",
+  "publicControlUrl": "wss://marketplaceautopost.com/autopost-agent",
+  "publicClaimUrl": "https://marketplaceautopost.com/claim",
+  "claimTtlMinutes": 1440,
+  "agentHeartbeatMs": 20000,
+  "agentVersion": "0.1.0",
+
+  "_dealerships_comment": "OPTIONAL / legacy. Pre-existing hand-provisioned dealerships. They are imported into the store once (marked already-claimed) so an old config keeps working. New dealerships should be created via the admin API instead.",
+  "dealerships": [
+    {
+      "id": "REPLACE-dealership-id",
+      "agentToken": "REPLACE-WITH-A-LONG-RANDOM-PER-DEALERSHIP-TOKEN",
+      "proxyAuth": { "user": "REPLACE-proxy-user", "pass": "REPLACE-proxy-pass" }
+    }
+  ]
+}
