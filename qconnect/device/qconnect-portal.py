@@ -191,7 +191,7 @@ FORM = """
   <div><span>Last problem</span><b>{reason}</b></div>
 </div>
 <div class="sub">Plugging in a network cable is the fastest fix and needs nothing below.
-Otherwise pick the dealership Wi-Fi.</div>
+Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</div>
 <form method="POST" action="/setup">
   <label>Wi-Fi network</label>
   <select name="ssid">{options}</select>
@@ -201,6 +201,10 @@ Otherwise pick the dealership Wi-Fi.</div>
   <input name="pass" type="password" placeholder="Password (leave blank if open)">
   <div class="chk"><input type="checkbox" name="hidden" value="yes" id="h">
     <label for="h" style="margin:0">This network is hidden</label></div>
+  <label>AT&T cellular APN (used when a modem is fitted)</label>
+  <select name="cellular_apn">{apn_options}</select>
+  <label>Or type another APN</label>
+  <input name="cellular_apn_manual" placeholder="e.g. m2m.com.attz" value="{apn_manual}">
   <button type="submit">Connect</button>
 </form>
 """
