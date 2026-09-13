@@ -174,12 +174,19 @@ begin
     (v_run, 8, '8.2', 'Wi-Fi only, 2.4 GHz SSID: online, fleet shows path wifi with SSID and signal'),
     (v_run, 8, '8.3', 'Pi 4 on a 5 GHz-only SSID joins; Zero 2 W reports ssid_not_in_range_2g_radio instead of failing silently'),
     (v_run, 8, '8.4', 'Hidden SSID joins when flashed with the hidden flag'),
-    (v_run, 8, '8.5', 'Cellular: modem fitted and APN set, box comes online with path cellular'),
-    (v_run, 8, '8.6', 'Saved phone hotspot is used when the dealer Wi-Fi is switched off'),
-    (v_run, 8, '8.7', 'Cable unplugged while running: fails over to Wi-Fi within 2 min, path updates'),
-    (v_run, 8, '8.8', 'Cable plugged back in: returns to ethernet, no reboot, no gap in heartbeats'),
-    (v_run, 8, '8.9', 'Wrong flashed Wi-Fi password: setup hotspot appears and the dashboard shows stuck_network with wrong_password'),
-    (v_run, 8, '8.10', 'Captive-portal network: box reports captive_portal rather than claiming to be online');
+    (v_run, 8, '8.5', 'Cellular: AT&T SIM detected by ModemManager'),
+    (v_run, 8, '8.6', 'Cellular: modem registers to tower with no PIN lock'),
+    (v_run, 8, '8.7', 'Cellular: box comes online using APN broadband with no Wi-Fi or cable, fleet shows path cellular'),
+    (v_run, 8, '8.8', 'Cellular: wrong APN (e.g. invalid.example) fails with cellular_failed'),
+    (v_run, 8, '8.9', 'Cellular: failover from cellular to cable works when cable is plugged in'),
+    (v_run, 8, '8.10', 'Cellular: portal APN override persists to provision.json and reconnects'),
+    (v_run, 8, '8.11', 'Saved phone hotspot is used when the dealer Wi-Fi is switched off'),
+    (v_run, 8, '8.12', 'Cable unplugged while running: fails over to Wi-Fi within 2 min, path updates'),
+    (v_run, 8, '8.13', 'Cable plugged back in: returns to ethernet, no reboot, no gap in heartbeats'),
+    (v_run, 8, '8.14', 'Wrong flashed Wi-Fi password: setup hotspot appears and the dashboard shows stuck_network with wrong_password'),
+    (v_run, 8, '8.15', 'Captive-portal network: box reports captive_portal rather than claiming to be online'),
+    (v_run, 8, '8.16', 'Pi Zero 2 W only sees 2.4 GHz networks and reports it clearly'),
+    (v_run, 8, '8.17', 'Pi 4 sees both 2.4 GHz and 5 GHz networks');
 
   return v_run;
 end;
