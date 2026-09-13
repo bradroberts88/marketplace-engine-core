@@ -5,17 +5,21 @@
 # Run this AFTER flashing Raspberry Pi OS Lite (64-bit, BOOKWORM or newer) to
 # the SD card with Raspberry Pi Imager. It writes the QConnect payload to the
 # boot partition so the device provisions itself on first power-up, and it
-# pre-registers the device in the database before you ever ship the card.
+# issues the card a single-use enrolment ticket so the card registers ITSELF on
+# first boot. No manual SQL step anywhere.
 #
 # Usage:
 #   ./provision-sd.sh \
 #     --boot /Volumes/bootfs \          # (macOS) or /media/$USER/bootfs (Linux)
 #     --device-id QCN-0042 \
 #     --dealer-id kendall-ford-meridian \
-#     --tailscale-key tskey-auth-XXXX \       # ONE FRESH KEY PER CARD
 #     --supabase-url https://xyz.supabase.co \
 #     --supabase-anon-key sb_publishable_... \
-#     --supabase-service-key sb_secret_...    # used once, here, to pre-register
+#     --supabase-service-key sb_secret_...    # used once, here, to issue the ticket
+#
+# Tailscale: with TAILSCALE_API_KEY and TAILSCALE_TAILNET in the environment a
+# fresh single-use tagged key is minted per card automatically. Pass
+# --tailscale-key tskey-auth-XXXX only to supply one by hand.
 #
 # Optional connectivity (all of them; the box tries cable, Wi-Fi, cellular,
 # hotspot in that order and uses whichever works):
@@ -26,6 +30,10 @@
 #                            AT&T IoT/M2M:  m2m.com.attz
 #                            AT&T MVNO:     att.mvno
 #     --wifi-country US
+#
+# Batch bookkeeping:
+#     --batch-id RUN-2026-09 [--batch-label "September pilot"]
+#     --enrol-ttl-days 30        # how long the ticket stays valid before shipping
 #
 # With no Wi-Fi and no cable the box boots straight into AP fallback mode
 # (QConnect-Setup-<id> hotspot, password qconnect123).
@@ -49,10 +57,16 @@ SB_KEY=""
 SB_SERVICE_KEY="${QCONNECT_SERVICE_KEY:-}"
 WIFI_COUNTRY="US"
 BOOT_MOUNT=""          # override for the on-device boot mountpoint
-SKIP_PREREGISTER="no"
+BATCH_ID=""
+BATCH_LABEL=""
+ENROL_TTL_DAYS="30"
+SKIP_ENROLMENT="no"
 
 PAYLOAD_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 KEY_LEDGER="${QCONNECT_KEY_LEDGER:-$HOME/.qconnect-used-tailscale-keys}"
+
+# shellcheck source=tailscale-keys.sh
+. "$(dirname "$0")/tailscale-keys.sh"
 
 usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -72,17 +86,21 @@ while [[ $# -gt 0 ]]; do
     --cellular-pass)        CELL_PASS="$2"; shift 2 ;;
     --wifi-country)         WIFI_COUNTRY="$2"; shift 2 ;;
     --tailscale-key)        TS_KEY="$2"; shift 2 ;;
+    --tailscale-tailnet)    TAILSCALE_TAILNET="$2"; shift 2 ;;
     --supabase-url)         SB_URL="$2"; shift 2 ;;
     --supabase-anon-key)    SB_KEY="$2"; shift 2 ;;
     --supabase-service-key) SB_SERVICE_KEY="$2"; shift 2 ;;
     --boot-mount)           BOOT_MOUNT="$2"; shift 2 ;;
-    --skip-preregister)     SKIP_PREREGISTER="yes"; shift ;;
+    --batch-id)             BATCH_ID="$2"; shift 2 ;;
+    --batch-label)          BATCH_LABEL="$2"; shift 2 ;;
+    --enrol-ttl-days)       ENROL_TTL_DAYS="$2"; shift 2 ;;
+    --skip-enrolment)       SKIP_ENROLMENT="yes"; shift ;;
     -h|--help)              usage ;;
     *) echo "Unknown arg: $1"; usage ;;
   esac
 done
 
-[[ -n "$BOOT" && -n "$DEVICE_ID" && -n "$DEALER_ID" && -n "$TS_KEY" && -n "$SB_URL" && -n "$SB_KEY" ]] \
+[[ -n "$BOOT" && -n "$DEVICE_ID" && -n "$DEALER_ID" && -n "$SB_URL" && -n "$SB_KEY" ]] \
   || { echo "ERROR: missing required args"; usage; }
 
 [[ -f "$BOOT/cmdline.txt" ]] || die "$BOOT does not look like a Pi boot partition (no cmdline.txt)"
@@ -92,39 +110,55 @@ done
 SB_URL="${SB_URL%/}"
 
 # --- one Tailscale key per card -------------------------------------------
-# A reused single-use key means only the FIRST card of a batch ever joins the
-# tailnet; the rest loop forever. Refuse rather than ship a dead card.
+# Minted automatically when the API token is present; otherwise the operator
+# must supply one. Either way the key is used exactly once: a reused single-use
+# key means only the FIRST card of a batch ever joins the tailnet.
+if [[ -z "$TS_KEY" ]]; then
+  ts_have_token || die "no --tailscale-key given and TAILSCALE_API_KEY / TAILSCALE_TAILNET are not set"
+  echo "==> Minting a Tailscale key for $DEVICE_ID (tag ${TS_TAG}, ${TS_KEY_DAYS}d)"
+  TS_KEY="$(ts_mint_key "$DEVICE_ID")" || die "could not mint a Tailscale key. Card NOT written."
+fi
+[[ -n "$TS_KEY" ]] || die "empty Tailscale key"
+
 KEY_FP="$(printf '%s' "$TS_KEY" | shasum -a 256 2>/dev/null | awk '{print $1}')"
 [[ -n "$KEY_FP" ]] || KEY_FP="$(printf '%s' "$TS_KEY" | sha256sum | awk '{print $1}')"
 if [[ -f "$KEY_LEDGER" ]] && grep -q "^$KEY_FP " "$KEY_LEDGER"; then
   die "this Tailscale key was already used for $(grep "^$KEY_FP " "$KEY_LEDGER" | awk '{print $2}'). Mint a fresh key per card."
 fi
 
-# --- device token ----------------------------------------------------------
+# --- device token and enrolment ticket -------------------------------------
 # Fixed-length hex. The old base64|tr|head pipeline could SIGPIPE under
 # pipefail and abort mid-provision, and produced variable-length tokens.
 DEVICE_TOKEN="$(od -An -tx1 -N20 /dev/urandom | tr -d ' \n')"
 [[ ${#DEVICE_TOKEN} -eq 40 ]] || die "could not generate a device token"
+ENROL_TICKET="$(od -An -tx1 -N24 /dev/urandom | tr -d ' \n')"
+[[ ${#ENROL_TICKET} -eq 48 ]] || die "could not generate an enrolment ticket"
 
-# --- pre-register BEFORE writing the card ----------------------------------
-# qconnect_register only updates a row that already exists. A card that was
-# never pre-registered can never come online, no matter how good its Wi-Fi is.
-if [[ "$SKIP_PREREGISTER" == "yes" ]]; then
-  echo "!! Skipping pre-registration at your request. Run this yourself or the card will never register:"
-  echo "   select public.qconnect_preregister('$DEVICE_ID', '$DEALER_ID', '$DEVICE_TOKEN');"
+# --- issue the ticket BEFORE writing the card ------------------------------
+# The card creates its own row on first boot by presenting this ticket. Nobody
+# runs SQL, and a card whose ticket never reached the server refuses to pretend
+# it is fine - it reports the refusal and raises an alert.
+if [[ "$SKIP_ENROLMENT" == "yes" ]]; then
+  echo "!! Skipping ticket issue at your request. This card will NOT be able to enrol."
 else
-  [[ -n "$SB_SERVICE_KEY" ]] || die "--supabase-service-key is required to pre-register (or pass --skip-preregister and run the SQL yourself)"
-  echo "==> Pre-registering $DEVICE_ID"
-  CODE=$(curl -s -o /tmp/qconnect-prereg.out -w '%{http_code}' --max-time 20 \
-    -X POST "$SB_URL/rest/v1/rpc/qconnect_preregister" \
+  [[ -n "$SB_SERVICE_KEY" ]] || die "--supabase-service-key is required to issue the enrolment ticket"
+  echo "==> Issuing enrolment ticket for $DEVICE_ID"
+  CODE=$(curl -s -o /tmp/qconnect-enrol.out -w '%{http_code}' --max-time 20 \
+    -X POST "$SB_URL/rest/v1/rpc/qconnect_issue_enrolment" \
     -H "apikey: $SB_SERVICE_KEY" -H "Authorization: Bearer $SB_SERVICE_KEY" \
     -H "Content-Type: application/json" \
-    -d "$(QP_D="$DEVICE_ID" QP_R="$DEALER_ID" QP_T="$DEVICE_TOKEN" python3 -c \
-        'import json,os;print(json.dumps({"p_device_id":os.environ["QP_D"],"p_dealer_id":os.environ["QP_R"],"p_device_token":os.environ["QP_T"]}))')")
+    -d "$(QP_D="$DEVICE_ID" QP_R="$DEALER_ID" QP_T="$ENROL_TICKET" QP_B="$BATCH_ID" \
+          QP_L="$BATCH_LABEL" QP_TTL="$ENROL_TTL_DAYS" python3 -c \
+        'import json,os
+print(json.dumps({"p_device_id":os.environ["QP_D"],"p_dealer_id":os.environ["QP_R"],
+                  "p_ticket":os.environ["QP_T"],
+                  "p_batch_id":os.environ.get("QP_B") or None,
+                  "p_batch_label":os.environ.get("QP_L") or None,
+                  "p_ttl_days":int(os.environ.get("QP_TTL") or 30)}))')")
   if [[ "$CODE" != "200" && "$CODE" != "204" ]]; then
-    die "pre-registration failed (HTTP $CODE): $(head -c 300 /tmp/qconnect-prereg.out). Card NOT written."
+    die "ticket issue failed (HTTP $CODE): $(head -c 300 /tmp/qconnect-enrol.out). Card NOT written."
   fi
-  echo "    pre-registered."
+  echo "    ticket issued (valid ${ENROL_TTL_DAYS} days)."
 fi
 
 echo "==> Writing QConnect payload to $BOOT"
@@ -144,6 +178,7 @@ date -u +%FT%TZ > "$BOOT/qconnect/VERSION"
 # environment variables (never interpolated into code) so passwords with
 # quotes, backslashes, spaces, or any special characters survive intact.
 QP_DEVICE_ID="$DEVICE_ID" QP_DEALER_ID="$DEALER_ID" QP_TOKEN="$DEVICE_TOKEN" \
+QP_TICKET="$ENROL_TICKET" QP_BATCH="$BATCH_ID" \
 QP_SSID="$WIFI_SSID" QP_PASS="$WIFI_PASS" QP_HIDDEN="$WIFI_HIDDEN" QP_COUNTRY="$WIFI_COUNTRY" \
 QP_HSSID="$HOTSPOT_SSID" QP_HPASS="$HOTSPOT_PASS" \
 QP_APN="$CELL_APN" QP_CUSER="$CELL_USER" QP_CPASS="$CELL_PASS" \
@@ -154,6 +189,8 @@ json.dump({
     "device_id":         os.environ["QP_DEVICE_ID"],
     "dealer_id":         os.environ["QP_DEALER_ID"],
     "device_token":      os.environ["QP_TOKEN"],
+    "enrolment_ticket":  os.environ.get("QP_TICKET", ""),
+    "batch_id":          os.environ.get("QP_BATCH", ""),
     "wifi_ssid":         os.environ.get("QP_SSID", ""),
     "wifi_pass":         os.environ.get("QP_PASS", ""),
     "wifi_hidden":       os.environ.get("QP_HIDDEN", "no"),
@@ -193,15 +230,20 @@ if [[ "$CMDLINE" != *"qconnect-firstrun"* ]]; then
     "$CMDLINE" "$BOOT_MOUNT" > "$BOOT/cmdline.txt"
 fi
 
-if [[ "$SKIP_PREREGISTER" != "yes" ]]; then
-  printf '%s %s %s\n' "$KEY_FP" "$DEVICE_ID" "$(date -u +%FT%TZ)" >> "$KEY_LEDGER"
+printf '%s %s %s\n' "$KEY_FP" "$DEVICE_ID" "$(date -u +%FT%TZ)" >> "$KEY_LEDGER"
+
+# Manifest line for batch runs: one CSV row per card, appended.
+if [[ -n "${QCONNECT_MANIFEST:-}" ]]; then
+  printf '%s,%s,%s,%s,%s\n' "$DEVICE_ID" "$DEALER_ID" "$BATCH_ID" "$KEY_FP" \
+    "$(date -u +%FT%TZ)" >> "$QCONNECT_MANIFEST"
 fi
 
 echo
 echo "==> Done. Device summary:"
 echo "    device_id:    $DEVICE_ID"
 echo "    dealer_id:    $DEALER_ID"
-echo "    pre-registered: $([[ "$SKIP_PREREGISTER" == yes ]] && echo NO || echo yes)"
+echo "    batch:        ${BATCH_ID:-<none>}"
+echo "    enrols itself: $([[ "$SKIP_ENROLMENT" == yes ]] && echo NO || echo "yes, on first boot")"
 echo "    wired:        always tried first - a cable needs no setup at all"
 echo "    wifi:         ${WIFI_SSID:-<none>}${WIFI_SSID:+$([[ $WIFI_HIDDEN == yes ]] && echo ' (hidden)')}"
 echo "    cellular:     ${CELL_APN:-broadband} (AT&T default; fit a USB modem with an AT&T SIM)"
