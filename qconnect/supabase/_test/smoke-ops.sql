@@ -175,4 +175,19 @@ begin
   end if;
 end $$;
 
+-- The combined entry point either runs the workers (07:00-20:00 Mountain) or
+-- reports that it skipped. The individual workers stay ungated so the checks
+-- above work at any hour.
+do $$
+declare v jsonb;
+begin
+  v := public.qconnect_run_workers();
+  if not (v ? 'steps' or v ? 'skipped') then
+    raise exception 'run_workers returned an unexpected shape: %', v;
+  end if;
+  if v ? 'skipped' and (v->>'skipped') not like 'outside 07:00-20:00%' then
+    raise exception 'run_workers skipped for an unexpected reason: %', v;
+  end if;
+end $$;
+
 select 'smoke-ops: all checks passed' as result;
