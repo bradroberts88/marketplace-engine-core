@@ -6,6 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { acknowledgeAlert, listAlerts, type FleetAlert } from "@/lib/qconnect-ops.functions";
+import { formatUsDateTime } from "@/lib/date-format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,12 +38,6 @@ const KIND_LABELS: Record<string, string> = {
   device_silent: "Box has gone quiet",
   command_expired: "Instruction not carried out",
   update_failed: "Update did not take",
-};
-
-const formatDateTime = (value: string): string => {
-  const date = new Date(value);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
 const severityVariant = (severity: FleetAlert["severity"]) =>
@@ -98,7 +93,7 @@ function AlertsPage() {
               <div className="space-y-1">
                 <CardTitle className="text-base">{alert.title}</CardTitle>
                 <p className="text-muted-foreground text-xs">
-                  {alert.device_id ?? "Fleet"} · {formatDateTime(alert.opened_at)}
+                  {alert.device_id ?? "Fleet"} · {formatUsDateTime(alert.opened_at)}
                   {alert.occurrences > 1 ? ` · seen ${alert.occurrences} times` : ""}
                 </p>
               </div>
@@ -112,7 +107,7 @@ function AlertsPage() {
               <p className="text-sm">{alert.detail ?? "No further detail was recorded."}</p>
               {alert.resolved_at ? (
                 <span className="text-muted-foreground text-xs">
-                  Resolved {formatDateTime(alert.resolved_at)}
+                  Resolved {formatUsDateTime(alert.resolved_at)}
                 </span>
               ) : (
                 <div className="flex shrink-0 gap-2">

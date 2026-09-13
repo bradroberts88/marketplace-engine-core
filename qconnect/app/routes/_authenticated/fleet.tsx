@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { formatUsDateTime } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/fleet")({
   component: FleetPage,
@@ -201,7 +202,7 @@ function FleetPage() {
               <p key={entry.id} className="text-muted-foreground">
                 <span className="text-foreground">{entry.actor_email ?? "unknown"}</span>{" "}
                 {entry.action}d <span className="font-mono">{entry.device_id}</span> —{" "}
-                {new Date(entry.created_at).toLocaleString("en-GB")}
+                {formatUsDateTime(entry.created_at)}
               </p>
             ))
           )}
