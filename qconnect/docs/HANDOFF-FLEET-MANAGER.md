@@ -4,12 +4,29 @@ This folder is the finished, tested package. It cannot be installed from the
 Marketplace Engine project: from here the Fleet Manager project is readable
 only. Open **QConnect Fleet Manager** and the work continues there.
 
-What already exists in Fleet Manager (checked at commit `ea5d02e3`):
+What already exists in Fleet Manager (checked at commit `f3b7b049`):
 
 - Screens: `fleet.index`, `fleet.$deviceId`, `alerts`, `activity`, `dealers`,
-  an auth gate and an app shell.
+  an auth gate and an app shell. The existing `alerts` screen computes health
+  warnings in the browser; this package adds the server-raised alert inbox
+  (`qconnect_alerts`) behind it.
 - Seven applied migrations covering the original fleet schema and the
-  August security hardening.
+  August security hardening (group roles, audit view, admin kill switch).
+
+Compatibility is verified, not assumed: the exact seven Fleet Manager
+migrations were applied to a throwaway Postgres, then `install-all.sql` was
+run twice and both smoke suites passed with zero errors. The install carries
+Fleet Manager's history forward instead of breaking it:
+
+- The legacy `qconnect_audit` **view** is replaced by the real audit table;
+  the legacy columns (`at`, `actor_role`, `dealer_id`) exist on the table so
+  the current Activity screen keeps working, and every row of the old
+  `qconnect_audit_log` is copied across.
+- The kill switch keeps Fleet Manager's group boundary: `admin` toggles any
+  box, `group_admin` toggles only its own group's boxes, everything is
+  audited.
+- The old 4-argument `qconnect_register` is removed so only the
+  connection-aware signature remains.
 
 ## Step 1 — Sending domain
 
