@@ -56,7 +56,10 @@ America/Denver.
 
 Copy in from `qconnect/app/`:
 
-- `routes/_authenticated/bench.tsx` — new page.
+- `routes/_authenticated/bench.tsx` — new page. It opens with the live batch
+  tracker: one row per card with cable, Wi-Fi and AT&T SIM shown as pass or
+  "fail — plain-words reason", filled in by the cards themselves as they
+  report. It mirrors the paper sheet in `docs/PI-BATCH-TRACKER.md`.
 - `routes/_authenticated/releases.tsx` — new page.
 - `routes/_authenticated/keys.tsx` — new page: one remote-access key per card,
   how long each has left, and an admin-only button to retire one.
