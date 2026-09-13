@@ -4,6 +4,9 @@ This guide is for anyone who has received one of our small Pi boxes and is not a
 developer. You do not need any technical knowledge. Follow the steps in order and
 you will be up and running in about five minutes.
 
+**Need help at any point?** QCAI Support — **1-855-782-6824** —
+**support@quantumconnectai.com**
+
 ## 1. What's in the box
 
 Your box should contain:
