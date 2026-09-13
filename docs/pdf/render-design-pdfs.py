@@ -297,7 +297,7 @@ class Doc(BaseDocTemplate):
         canv.setLineWidth(0.5)
         canv.line(20 * mm, h - 16 * mm, w - 20 * mm, h - 16 * mm)
         canv.line(20 * mm, 15 * mm, w - 20 * mm, 15 * mm)
-        canv.drawString(20 * mm, 11 * mm, "Internal — confidential")
+        canv.drawString(20 * mm, 11 * mm, self.footer_note)
         canv.drawRightString(w - 20 * mm, 11 * mm, "Page %d" % (doc.page - 1))
         canv.restoreState()
 
