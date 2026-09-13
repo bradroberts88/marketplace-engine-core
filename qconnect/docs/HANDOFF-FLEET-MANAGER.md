@@ -32,8 +32,9 @@ Fleet Manager's history forward instead of breaking it:
 
 ## Step 1 — Sending domain
 
-Set up the domain the alert emails come from. Until that's verified, alerts
-appear on the dashboard but no email leaves the building.
+Done. Alert emails send from `notify.automarketplaceengine.com` (verified) and
+land at `support@quantumconnectai.com`. Note this is a new sending domain —
+deliverability improves over the first 2–4 weeks.
 
 ## Step 2 — Database
 
