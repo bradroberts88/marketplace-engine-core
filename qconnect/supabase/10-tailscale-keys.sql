@@ -60,7 +60,7 @@ language sql security definer set search_path = public as $$
   update qconnect_devices d
      set tailscale_key_id         = coalesce(d.tailscale_key_id, e.tailscale_key_id),
          tailscale_key_expires_at = coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at),
-         tailscale_key_issued_at  = coalesce(d.tailscale_key_issued_at, e.issued_at)
+         tailscale_key_issued_at  = coalesce(d.tailscale_key_issued_at, e.created_at)
     from qconnect_enrolments e
    where d.device_id = p_device_id and e.device_id = p_device_id;
 $$;
@@ -100,7 +100,7 @@ create view public.qconnect_keys as
               else greatest(0, date_part('day', d.tailscale_key_expires_at - now()))::int
          end as days_left
     from qconnect_devices d
-   where public.qconnect_is_admin() or d.dealer_id = public.qconnect_current_dealer();
+   where public.qconnect_is_admin() or d.dealer_id = public.qconnect_dealer_id();
 grant select on public.qconnect_keys to authenticated;
 
 -- Worker: a key that is within a fortnight of expiring is a card that will
