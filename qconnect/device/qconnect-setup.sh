@@ -140,12 +140,20 @@ join_tailnet() {
 
 # --- Supabase registration -------------------------------------------------
 register_device() {
-  local ts_ip payload code body
+  local ts_ip payload code body path detail model
   ts_ip=$(tailscale ip -4 2>/dev/null | head -1)
-  payload=$(python3 - "$DEVICE_ID" "$DEALER_ID" "$DEVICE_TOKEN" "$ts_ip" <<'PYEOF'
+  # Record how this box got online at the moment it registers, so the very
+  # first fleet row already answers "cable, Wi-Fi or mobile data?".
+  path=$(python3 -c "import json;print(json.load(open('$STATE/net-state.json')).get('connection_path',''))" 2>/dev/null)
+  detail=$(python3 -c "import json;print(json.load(open('$STATE/net-state.json')).get('connection_detail',''))" 2>/dev/null)
+  model=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)
+  payload=$(python3 - "$DEVICE_ID" "$DEALER_ID" "$DEVICE_TOKEN" "$ts_ip" "$path" "$detail" "$model" <<'PYEOF'
 import json, sys
-print(json.dumps({"p_device_id": sys.argv[1], "p_dealer_id": sys.argv[2],
-                  "p_device_token": sys.argv[3], "p_tailscale_ip": sys.argv[4]}))
+a = sys.argv
+print(json.dumps({"p_device_id": a[1], "p_dealer_id": a[2],
+                  "p_device_token": a[3], "p_tailscale_ip": a[4],
+                  "p_connection_path": a[5], "p_connection_detail": a[6],
+                  "p_pi_model": a[7]}))
 PYEOF
 )
   code=$(curl -s -o /tmp/qconnect-reg.out -w '%{http_code}' --max-time 20 \
