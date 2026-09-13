@@ -117,26 +117,42 @@ begin
 end $$;
 
 -- --------------------------------------------------------------- kill switch
+-- Admin: any box. group_admin (when qconnect_dealer_groups exists): own group.
+-- Every toggle is written to the audit trail with actor, role and dealer.
 create or replace function public.qconnect_set_enabled(
   p_device_id text, p_enabled boolean
 ) returns boolean
 language plpgsql security definer set search_path = public as $$
-declare v_email text;
+declare
+  v_email  text;
+  v_role   text := coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '');
+  v_group  text := auth.jwt() -> 'app_metadata' ->> 'group_id';
+  v_dealer text;
 begin
-  if not public.qconnect_is_admin() then
+  if v_role = 'admin' then
+    update qconnect_devices set enabled = p_enabled
+     where device_id = p_device_id
+     returning dealer_id into v_dealer;
+  elsif v_role = 'group_admin' and to_regclass('public.qconnect_dealer_groups') is not null then
+    update qconnect_devices d set enabled = p_enabled
+     where d.device_id = p_device_id
+       and d.dealer_id in (select g.dealer_id from public.qconnect_dealer_groups g
+                            where g.group_id = v_group)
+     returning d.dealer_id into v_dealer;
+  else
     raise exception 'not authorized';
   end if;
 
-  update qconnect_devices set enabled = p_enabled where device_id = p_device_id;
-  if not found then
-    raise exception 'unknown device';
+  if v_dealer is null then
+    raise exception 'not authorized';
   end if;
 
   select email into v_email from auth.users where id = auth.uid();
 
-  insert into qconnect_audit (actor_id, actor_email, device_id, action, detail)
-  values (auth.uid(), v_email, p_device_id,
+  insert into qconnect_audit (actor_id, actor_email, actor_role, device_id, action, dealer_id, detail)
+  values (auth.uid(), v_email, v_role, p_device_id,
           case when p_enabled then 'enable' else 'disable' end,
+          v_dealer,
           jsonb_build_object('enabled', p_enabled));
 
   return p_enabled;
