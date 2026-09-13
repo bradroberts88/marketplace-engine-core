@@ -14,7 +14,9 @@ What already exists in Fleet Manager (checked at commit `f3b7b049`):
   August security hardening (group roles, audit view, admin kill switch).
 
 Compatibility is verified, not assumed: the exact seven Fleet Manager
-migrations were applied to a throwaway Postgres, then `install-all.sql` was
+migrations (all fifteen, re-checked at commit `83bdec4e`, including the
+September realtime-broadcast and provisioning work) were applied to a
+throwaway Postgres, then `install-all.sql` (scripts 01–10) was
 run twice and both smoke suites passed with zero errors. The install carries
 Fleet Manager's history forward instead of breaking it:
 
