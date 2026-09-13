@@ -42,9 +42,24 @@ REASONS = {
     "joined_but_no_internet": "Joined the network, but there is no internet behind it.",
     "captive_portal": "This network shows a sign-in page. It needs an open or pre-approved connection.",
     "cellular_no_apn": "A modem is fitted but no mobile APN was set at the bench.",
-    "cellular_failed": "The modem could not connect. Check the SIM and signal.",
+    "cellular_sim_locked": "The SIM is PIN-locked. Unlock it before shipping.",
+    "cellular_sim_disabled": "The SIM or modem RF is disabled. Check the SIM seating.",
+    "cellular_no_tower": "The modem cannot see a tower. Check the antenna and coverage.",
+    "cellular_failed": "The modem could not connect. Check the SIM, signal and APN.",
     "no_path": "No cable, no known Wi-Fi, no modem.",
 }
+
+# AT&T is the fleet default. The portal lets staff override it without reflashing.
+ATT_DEFAULT_APN = "broadband"
+ATT_APN_OPTIONS = ["broadband", "m2m.com.attz", "att.mvno", "nxtgenphone"]
+
+
+def provision_json():
+    return read_json(os.path.join(QCONNECT, "etc", "provision.json"))
+
+
+def current_cellular_apn():
+    return provision_json().get("cellular_apn") or ATT_DEFAULT_APN
 
 
 def read_json(path):
