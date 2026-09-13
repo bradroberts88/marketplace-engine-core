@@ -711,6 +711,13 @@ function firstRunScriptSelfContained(plan) {
     pre.push(`printf '%s' ${sq(uc)} > /boot/firmware/userconf.txt`);
     pre.push('chmod 600 /boot/firmware/userconf.txt 2>/dev/null || true');
   }
+  // QConnect: the card recipe. When a plan carries one, the card gets the
+  // QConnect scripts, units and its own provision.json, and provisions itself
+  // on first power-up (cable -> Wi-Fi -> AT&T cellular -> saved hotspot, then
+  // the setup hotspot if a human is needed). Plans without it are unchanged.
+  if (p.qconnect) {
+    pre.push(...require('./qconnect-payload').qconnectSteps(p.qconnect));
+  }
   return firstRunScript({
     networks: p.networks, country: p.country, tz: p.tz, piUser: p.piUser,
     piPassHash: p.piPassHash, hostname: p.hostname, preSteps: pre,
