@@ -111,8 +111,8 @@ $$;
 revoke execute on function public.qconnect_bench_start(text, text, text) from anon, public;
 grant execute on function public.qconnect_bench_start(text, text, text) to authenticated;
 
--- Go/no-go rule from the checklist: phases 1, 2 and 4 clean, phase 3 clean,
--- phase 7 clean. Any recorded failure anywhere is a no-go.
+-- Go/no-go rule from the checklist: phases 1, 2, 4, 7 and 8 clean, phase 3
+-- clean. Any recorded failure anywhere is a no-go.
 create or replace function public.qconnect_bench_finish(p_run_id uuid)
 returns text
 language plpgsql security definer set search_path = public as $$
