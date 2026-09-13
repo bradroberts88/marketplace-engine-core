@@ -178,18 +178,18 @@ chroot "$MNT" id -nG autopost 2>/dev/null | grep -qw video && LOG "autopost in '
 # 8a) FORCE-ENABLE the services. `systemctl enable` inside a qemu-emulated chroot does NOT reliably create the
 #     multi-user.target.wants symlinks, so a box built this way would boot and start NOTHING (no connector, no WiFi
 #     rescue, no Tailscale). Create the wants symlinks directly (works regardless of systemctl) and HARD-ASSERT.
-LOG "force-enabling services (connector, wifi-recovery, tailscaled)"
+LOG "force-enabling services (connector, claim, wifi-recovery, tailscale, tailscaled)"
 install -d "$MNT/etc/systemd/system/multi-user.target.wants"
 # hciuart is deliberately NOT in this list. It is triggered by dev-serial1.device appearing - the pi-bluetooth
 # package installs that wants-link itself - and forcing it into multi-user.target as well makes systemd run it
 # before the UART device node exists, which fails, logs a failed unit, and then succeeds when the device shows
 # up. Harmless, but a spurious failed unit in the journal of a box whose diagnostics are supposed to mean
 # something is exactly the noise this work is trying to remove. Verified below instead.
-for svc in autopost-connector autopost-wifi-recovery tailscaled; do
+for svc in autopost-connector autopost-claim autopost-wifi-recovery autopost-tailscale tailscaled; do
   U="/etc/systemd/system/${svc}.service"; [ -f "$MNT$U" ] || U="/usr/lib/systemd/system/${svc}.service"
   [ -f "$MNT$U" ] && ln -sf "$U" "$MNT/etc/systemd/system/multi-user.target.wants/${svc}.service"
 done
-for svc in autopost-connector autopost-wifi-recovery tailscaled; do
+for svc in autopost-connector autopost-wifi-recovery autopost-tailscale tailscaled; do
   [ -L "$MNT/etc/systemd/system/multi-user.target.wants/${svc}.service" ] || { echo "ERROR: ${svc}.service not enabled in the image"; exit 1; }
 done
 # Bluetooth and hciuart are no longer part of the recipe, so nothing here asserts on them.
