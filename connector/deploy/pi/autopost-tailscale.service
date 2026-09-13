@@ -10,6 +10,9 @@
 Description=AutoPost first-boot Tailscale join (SSH recall path)
 After=network-online.target tailscaled.service
 Wants=network-online.target tailscaled.service
+# Mandatory next to the condition below: if the vfat boot partition is not mounted yet when systemd evaluates it,
+# this oneshot is condition-skipped for the whole boot and never retried, so the box never joins the tailnet.
+RequiresMountsFor=/boot/firmware
 ConditionPathExists=/boot/firmware/autopost-tailscale.env
 
 [Service]
