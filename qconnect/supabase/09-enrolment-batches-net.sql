@@ -369,7 +369,7 @@ grant select on public.qconnect_batch_progress to authenticated;
 create or replace function public.qconnect_bench_autocheck(p_run_id uuid default null)
 returns integer
 language plpgsql security definer set search_path = public as $$
-declare v_run record; v_dev record; v_n integer := 0;
+declare v_run record; v_dev record; v_n integer := 0; v_hit integer;
 begin
   for v_run in
     select r.id, r.device_id from qconnect_bench_runs r
@@ -401,7 +401,8 @@ begin
                           where n.device_id = v_dev.device_id
                             and n.reason = 'ssid_not_in_range_2g_radio'))
        );
-    get diagnostics v_n = row_count;
+    get diagnostics v_hit = row_count;
+    v_n := v_n + v_hit;
   end loop;
   return v_n;
 end;
