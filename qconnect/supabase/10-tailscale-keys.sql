@@ -80,8 +80,14 @@ begin
   update qconnect_devices
      set tailscale_key_revoked_at = now()
    where device_id = p_device_id;
-  perform public.qconnect_audit_write('key_revoked', p_device_id,
-    'Retired the remote-access key for ' || p_device_id);
+  insert into qconnect_audit (actor_id, actor_email, actor_role, device_id, action, dealer_id, detail)
+  select auth.uid(),
+         (select email from auth.users where id = auth.uid()),
+         'admin',
+         p_device_id,
+         'key_revoked',
+         (select dealer_id from qconnect_devices where device_id = p_device_id),
+         jsonb_build_object('reason', 'retired from the key rotation screen');
   update qconnect_alerts
      set resolved_at = now()
    where device_id = p_device_id and kind = 'key_expiring' and resolved_at is null;

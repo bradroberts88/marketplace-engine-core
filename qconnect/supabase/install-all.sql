@@ -2214,12 +2214,33 @@ revoke execute on function public.qconnect_adopt_enrolment_key(text) from anon, 
 
 -- Marked when an operator retires a card's key from the rotation screen. The
 -- revocation at the tunnel provider itself is done by the app; this records it.
+-- Callable from the rotation screen, but it re-checks admin rights here: the
+-- screen being hidden is never the thing that keeps a dealer out.
 create or replace function public.qconnect_mark_key_revoked(p_device_id text)
 returns void
-language sql security definer set search_path = public as $$
-  update qconnect_devices set tailscale_key_revoked_at = now() where device_id = p_device_id;
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.qconnect_is_admin() then
+    raise exception 'only an administrator can retire a card key';
+  end if;
+  update qconnect_devices
+     set tailscale_key_revoked_at = now()
+   where device_id = p_device_id;
+  insert into qconnect_audit (actor_id, actor_email, actor_role, device_id, action, dealer_id, detail)
+  select auth.uid(),
+         (select email from auth.users where id = auth.uid()),
+         'admin',
+         p_device_id,
+         'key_revoked',
+         (select dealer_id from qconnect_devices where device_id = p_device_id),
+         jsonb_build_object('reason', 'retired from the key rotation screen');
+  update qconnect_alerts
+     set resolved_at = now()
+   where device_id = p_device_id and kind = 'key_expiring' and resolved_at is null;
+end;
 $$;
-revoke execute on function public.qconnect_mark_key_revoked(text) from anon, authenticated, public;
+revoke execute on function public.qconnect_mark_key_revoked(text) from anon, public;
+grant execute on function public.qconnect_mark_key_revoked(text) to authenticated;
 
 -- What the key-rotation screen reads. One row per card, role-scoped the same
 -- way every other fleet view is: an admin sees the fleet, a dealer sees theirs.
