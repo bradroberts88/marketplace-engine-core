@@ -204,7 +204,7 @@ echo "    dealer_id:    $DEALER_ID"
 echo "    pre-registered: $([[ "$SKIP_PREREGISTER" == yes ]] && echo NO || echo yes)"
 echo "    wired:        always tried first - a cable needs no setup at all"
 echo "    wifi:         ${WIFI_SSID:-<none>}${WIFI_SSID:+$([[ $WIFI_HIDDEN == yes ]] && echo ' (hidden)')}"
-echo "    cellular:     ${CELL_APN:-<none - fit a USB modem and set --cellular-apn>}"
+echo "    cellular:     ${CELL_APN:-broadband} (AT&T default; fit a USB modem with an AT&T SIM)"
 echo "    hotspot:      ${HOTSPOT_SSID:-<none>}"
 echo "    setup rescue: QConnect-Setup-$DEVICE_ID / qconnect123"
 echo
