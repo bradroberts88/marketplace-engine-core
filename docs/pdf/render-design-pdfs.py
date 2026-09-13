@@ -304,7 +304,7 @@ class Doc(BaseDocTemplate):
 
 def build(src, out, title, subtitle, version, date,
           brand="Marketplace Engine (AutoPost)", cover_brand="Marketplace&nbsp;Engine",
-          cover_meta=None, footer_note="Internal — confidential"):
+          cover_meta=None, footer_note="Internal — confidential", contents=True):
     md = open(src, encoding="utf-8").read()
     md = re.sub(r"^#\s+.*\n", "", md, count=1)
     doc = Doc(out, title, subtitle, brand=brand, footer_note=footer_note)
@@ -327,20 +327,21 @@ def build(src, out, title, subtitle, version, date,
     story.append(NextPageTemplate("body"))
     story.append(PageBreak())
 
-    story.append(Paragraph("Contents", S["h1"]))
-    story.append(Spacer(1, 4))
-    rows = [[Paragraph("%d." % (n + 1), S["toc"]), Paragraph(inline(s), S["toc"])]
-            for n, s in enumerate(sections)]
-    toc = Table(rows, colWidths=[12 * mm, width - 12 * mm])
-    toc.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("TOPPADDING", (0, 0), (-1, -1), 1), ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
-        ("LINEBELOW", (0, 0), (-1, -2), 0.25, RULE),
-        ("TEXTCOLOR", (0, 0), (0, -1), ACCENT),
-    ]))
-    story.append(toc)
-    story.append(PageBreak())
+    if contents:
+        story.append(Paragraph("Contents", S["h1"]))
+        story.append(Spacer(1, 4))
+        rows = [[Paragraph("%d." % (n + 1), S["toc"]), Paragraph(inline(s), S["toc"])]
+                for n, s in enumerate(sections)]
+        toc = Table(rows, colWidths=[12 * mm, width - 12 * mm])
+        toc.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 1), ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+            ("LINEBELOW", (0, 0), (-1, -2), 0.25, RULE),
+            ("TEXTCOLOR", (0, 0), (0, -1), ACCENT),
+        ]))
+        story.append(toc)
+        story.append(PageBreak())
     story.extend(body)
 
     doc.build(story)
@@ -364,6 +365,25 @@ if __name__ == "__main__":
           "A plain-English owner's guide — no technical knowledge needed",
           "1.0", date,
           brand="QConnect", cover_brand="QConnect",
-          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi"
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
           % date,
-          footer_note="Owner's guide")
+          footer_note="Owner's guide — QCAI Support 1-855-782-6824")
+    build("docs/PI-OWNERS-HANDOUT.md", "docs/pdf/Pi-Owners-Handout.pdf",
+          "Your Pi — the one-page version",
+          "Plug in, get online, who to call",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
+          % date,
+          footer_note="QCAI Support 1-855-782-6824",
+          contents=False)
+    build("docs/PI-BATCH-TRACKER.md", "docs/pdf/Pi-Batch-Tracker.pdf",
+          "Pi batch tracker",
+          "Wireless, cable and AT&T cellular — one row per card",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Print and keep on the bench" % date,
+          footer_note="Bench tracker",
+          contents=False)

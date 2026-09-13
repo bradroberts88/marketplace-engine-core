@@ -11,10 +11,100 @@ import {
   recordBenchCheck,
   startBenchRun,
 } from "@/lib/qconnect.functions";
+import { listBatchConnectivity, type PathResult } from "@/lib/qconnect-ops.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+
+// Live batch tracker: the three ways a card can get online, filled in by the
+// cards themselves as they report. Matches docs/PI-BATCH-TRACKER.md so the
+// paper sheet and the screen say the same thing.
+function PathCell({ result }: { result: PathResult | null }) {
+  if (result === null) {
+    return <span className="text-muted-foreground text-xs">not tried</span>;
+  }
+  return (
+    <span
+      className={
+        result.ok
+          ? "text-xs font-medium text-emerald-600"
+          : "text-destructive text-xs font-medium"
+      }
+      title={result.detail ?? result.label}
+    >
+      {result.ok ? "Pass" : `Fail — ${result.label}`}
+    </span>
+  );
+}
+
+function BatchTracker() {
+  const fetchBatch = useServerFn(listBatchConnectivity);
+  const batch = useQuery({
+    queryKey: ["qconnect", "batch-connectivity"],
+    queryFn: () => fetchBatch(),
+    refetchInterval: 60_000,
+  });
+
+  const cards = batch.data ?? [];
+  const failing = cards.filter(
+    (card) =>
+      card.ethernet?.ok === false || card.wifi?.ok === false || card.cellular?.ok === false,
+  ).length;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Batch tracker</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-muted-foreground text-sm">
+          {cards.length} cards reporting, {failing} with a failed connection. This fills
+          itself in as each card checks in.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-muted-foreground border-b text-left">
+                <th className="py-2 pr-3 font-medium">Card</th>
+                <th className="py-2 pr-3 font-medium">Cable</th>
+                <th className="py-2 pr-3 font-medium">Wi-Fi</th>
+                <th className="py-2 pr-3 font-medium">AT&amp;T SIM</th>
+                <th className="py-2 font-medium">Now</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cards.map((card) => (
+                <tr key={card.device_id} className="border-b last:border-b-0">
+                  <td className="py-2 pr-3 font-mono text-xs">{card.device_id}</td>
+                  <td className="py-2 pr-3">
+                    <PathCell result={card.ethernet} />
+                  </td>
+                  <td className="py-2 pr-3">
+                    <PathCell result={card.wifi} />
+                  </td>
+                  <td className="py-2 pr-3">
+                    <PathCell result={card.cellular} />
+                  </td>
+                  <td className="py-2 text-xs">
+                    {card.online ? "Online" : card.health.replace(/_/g, " ")}
+                  </td>
+                </tr>
+              ))}
+              {cards.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-muted-foreground py-3 text-sm">
+                    No card has reported a connection attempt yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/bench")({
   component: BenchPage,
@@ -93,6 +183,10 @@ function BenchPage() {
           Prove one physical card end to end before producing a batch. Budget about two hours.
         </p>
       </header>
+
+      <BatchTracker />
+
+
 
       {runId === null ? (
         <Card>

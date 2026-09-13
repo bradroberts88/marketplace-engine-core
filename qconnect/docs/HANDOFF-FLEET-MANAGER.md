@@ -14,7 +14,9 @@ What already exists in Fleet Manager (checked at commit `f3b7b049`):
   August security hardening (group roles, audit view, admin kill switch).
 
 Compatibility is verified, not assumed: the exact seven Fleet Manager
-migrations were applied to a throwaway Postgres, then `install-all.sql` was
+migrations (all fifteen, re-checked at commit `83bdec4e`, including the
+September realtime-broadcast and provisioning work) were applied to a
+throwaway Postgres, then `install-all.sql` (scripts 01–10) was
 run twice and both smoke suites passed with zero errors. The install carries
 Fleet Manager's history forward instead of breaking it:
 
@@ -56,7 +58,10 @@ America/Denver.
 
 Copy in from `qconnect/app/`:
 
-- `routes/_authenticated/bench.tsx` — new page.
+- `routes/_authenticated/bench.tsx` — new page. It opens with the live batch
+  tracker: one row per card with cable, Wi-Fi and AT&T SIM shown as pass or
+  "fail — plain-words reason", filled in by the cards themselves as they
+  report. It mirrors the paper sheet in `docs/PI-BATCH-TRACKER.md`.
 - `routes/_authenticated/releases.tsx` — new page.
 - `routes/_authenticated/keys.tsx` — new page: one remote-access key per card,
   how long each has left, and an admin-only button to retire one.

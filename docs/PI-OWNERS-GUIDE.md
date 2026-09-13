@@ -4,6 +4,9 @@ This guide is for anyone who has received one of our small Pi boxes and is not a
 developer. You do not need any technical knowledge. Follow the steps in order and
 you will be up and running in about five minutes.
 
+**Need help at any point?** QCAI Support — **1-855-782-6824** —
+**support@quantumconnectai.com**
+
 ## 1. What's in the box
 
 Your box should contain:
@@ -16,7 +19,7 @@ Your box should contain:
 - **Possibly an antenna or a network cable**, depending on how your unit connects
   to the internet.
 
-If anything looks damaged or is missing, contact the person who shipped the box
+If anything looks damaged or is missing, call QCAI Support on 1-855-782-6824
 before going further.
 
 ## 2. Plugging it in
@@ -111,7 +114,8 @@ the Pi.
 | It worked before but is now offline | Wi-Fi password changed, or it lost signal | Did the office Wi-Fi password change? If so, rejoin QConnect-Setup and enter the new one. For SIM units, move the Pi near a window. |
 
 **When to call us:** if you have tried the steps above and it still isn't working,
-contact the person or company that shipped the box. When you call or write, say:
+call QCAI Support on **1-855-782-6824** or write to
+**support@quantumconnectai.com**. When you call or write, say:
 
 > "The box labelled device **[the name on the sticker]** is showing
 > **[what you see — for example, 'no lights' or 'offline']**, and I've tried
@@ -134,13 +138,18 @@ If you need to unplug the Pi, just pull the power plug. That is always safe.
 uses Wi-Fi and you moved beyond your Wi-Fi's reach, set it up again with the
 steps in Option B.
 
-**Sending it back:** unplug the power, pack the Pi and its cables, and tell the
-person who shipped it that it is on its way back — this stops our dashboard from
-raising a "missing device" alert while it travels.
+**Sending it back:** unplug the power, pack the Pi and its cables, and tell QCAI
+Support it is on its way back — this stops our dashboard from raising a "missing
+device" alert while it travels.
 
 ## 9. Who to contact
 
-This box was prepared and shipped by your installer or supplier. For any question
-— setup, moving, returning, or something odd — contact them first. They can see
-your Pi on the fleet dashboard and can usually tell what is happening before you
-finish describing it.
+**QCAI Support**
+
+- Phone: **1-855-782-6824**
+- Email: **support@quantumconnectai.com**
+
+For any question — setup, moving, returning, or something that just looks odd —
+get in touch. We can see your Pi on the fleet dashboard and can usually tell what
+is happening before you finish describing it. Have the name on the sticker ready
+and we will be quicker.

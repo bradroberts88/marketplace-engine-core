@@ -320,3 +320,103 @@ export const revokeCardKey = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ------------------------------------------------------- batch connectivity
+// The bench tracker, filled in by the cards themselves. For every card we keep
+// the newest result per connection path, so the grid answers "did cable, Wi-Fi
+// and the AT&T SIM each work on this card?" without anyone typing anything.
+export type PathResult = {
+  reason: string;
+  label: string;
+  detail: string | null;
+  at: string;
+  ok: boolean;
+};
+
+export type BatchCard = {
+  device_id: string;
+  dealer_id: string | null;
+  online: boolean;
+  health: string;
+  last_seen_at: string | null;
+  ethernet: PathResult | null;
+  wifi: PathResult | null;
+  cellular: PathResult | null;
+};
+
+type NetEventRow = {
+  device_id: string;
+  path: string | null;
+  reason: string;
+  detail: string | null;
+  created_at: string;
+};
+
+type FleetRow = {
+  device_id: string;
+  dealer_id: string | null;
+  online: boolean;
+  health: string;
+  last_seen_at: string | null;
+};
+
+export const listBatchConnectivity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const fleet = await context.supabase
+      .from("qconnect_fleet")
+      .select("device_id, dealer_id, online, health, last_seen_at")
+      .order("device_id");
+    if (fleet.error) throw new Error(fleet.error.message);
+
+    const events = await context.supabase
+      .from("qconnect_net_events")
+      .select("device_id, path, reason, detail, created_at")
+      .in("path", ["ethernet", "wifi", "cellular"])
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    if (events.error) throw new Error(events.error.message);
+
+    // Plain-English wording, identical to qconnect_net_reason_label in the
+    // database, so the bench sheet and the screen never disagree.
+    const labels: Record<string, string> = {
+      ok: "Connected",
+      wrong_password: "Wi-Fi password was not accepted",
+      ssid_not_in_range: "Wi-Fi network not found",
+      ssid_not_in_range_2g_radio: "Wi-Fi network not found (this box is 2.4 GHz only)",
+      joined_but_no_internet: "Joined the network but there is no internet behind it",
+      captive_portal: "Network shows a sign-in page",
+      cellular_sim_locked: "SIM is PIN-locked",
+      cellular_sim_disabled: "SIM or modem radio is switched off",
+      cellular_no_tower: "Modem cannot see a mobile tower",
+      cellular_no_apn: "Modem fitted but no mobile APN set",
+      cellular_failed: "Mobile data did not connect",
+      netmanager_unavailable: "The box network service is not running",
+      no_path: "No cable, no known Wi-Fi, no modem",
+      no_wifi_radio: "No Wi-Fi radio found on this box",
+    };
+
+    const newest = new Map<string, PathResult>();
+    for (const event of rows<NetEventRow>(events.data)) {
+      const key = `${event.device_id}|${event.path}`;
+      if (newest.has(key)) continue; // already have a newer one
+      newest.set(key, {
+        reason: event.reason,
+        label: labels[event.reason] ?? event.reason,
+        detail: event.detail,
+        at: event.created_at,
+        ok: event.reason === "ok",
+      });
+    }
+
+    return rows<FleetRow>(fleet.data).map<BatchCard>((device) => ({
+      device_id: device.device_id,
+      dealer_id: device.dealer_id,
+      online: device.online,
+      health: device.health,
+      last_seen_at: device.last_seen_at,
+      ethernet: newest.get(`${device.device_id}|ethernet`) ?? null,
+      wifi: newest.get(`${device.device_id}|wifi`) ?? null,
+      cellular: newest.get(`${device.device_id}|cellular`) ?? null,
+    }));
+  });
