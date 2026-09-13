@@ -183,19 +183,27 @@ PYEOF
 log "=== QConnect setup starting (device=$DEVICE_ID dealer=$DEALER_ID model=$(pi_model)) ==="
 radio_is_dual_band || log "NOTE: this radio is 2.4 GHz only - a 5 GHz-only SSID will never be seen."
 
+# The card is awake and its scripts are in place: that is step one of the
+# checklist the server is timing us against.
+report_step_once power_on "$(pi_model)"
+
 step network
 until connect_any; do
   log "No path online (last: $(cat "$STATE/last_block_reason" 2>/dev/null || echo unknown)). Asking a human."
+  report_step network_up fail "$(cat "$STATE/last_block_reason" 2>/dev/null || echo 'no path online')"
   ap_fallback_cycle || log "AP window closed with no working credentials. Retrying all paths."
 done
 log "Network is up via $(active_path)."
+report_step network_up ok "$(active_path)"
 
 step tailscale
 until join_tailnet; do
+  report_step tunnel_up fail "$(cat "$STATE/last_error" 2>/dev/null || echo 'tailscale join failed')"
   log "Tailscale join failed. Retrying in 60s."
   connect_any >/dev/null 2>&1   # a dropped path must not look like a Tailscale fault
   sleep 60
 done
+report_step tunnel_up ok "$(tailscale ip -4 2>/dev/null | head -1)"
 
 step register
 until register_device; do
@@ -203,6 +211,8 @@ until register_device; do
   connect_any >/dev/null 2>&1
   sleep 60
 done
+
+report_step registered ok "$(active_path)"
 
 date -u +%FT%TZ > "$STATE/provisioned"
 rm -f "$STATE/stuck_step"
