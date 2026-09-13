@@ -96,7 +96,25 @@ begin
     (v_run, 6, '6.3', 'authkey redacted on ext4; test device disabled afterwards'),
     (v_run, 7, '7.1', 'Box left running 24 h in a case'),
     (v_run, 7, '7.2', 'No heartbeat gap over 15 min, temp under 70 C, mem free over 100 MB'),
-    (v_run, 7, '7.3', 'Steady-state temperature and free memory recorded');
+    (v_run, 7, '7.3', 'Steady-state temperature and free memory recorded'),
+    -- Phase 8: connectivity. Each path proved on its own, then handover between them.
+    (v_run, 8, '8.1', 'Cable only, no Wi-Fi configured: online within 3 min, fleet shows path ethernet'),
+    (v_run, 8, '8.2', 'Wi-Fi only, 2.4 GHz SSID: online, fleet shows path wifi with SSID and signal'),
+    (v_run, 8, '8.3', 'Pi 4 on a 5 GHz-only SSID joins; Zero 2 W reports ssid_not_in_range_2g_radio instead of failing silently'),
+    (v_run, 8, '8.4', 'Hidden SSID joins when flashed with the hidden flag'),
+    (v_run, 8, '8.5', 'Cellular: AT&T SIM detected by ModemManager'),
+    (v_run, 8, '8.6', 'Cellular: modem registers to tower with no PIN lock'),
+    (v_run, 8, '8.7', 'Cellular: box comes online using APN broadband with no Wi-Fi or cable, fleet shows path cellular'),
+    (v_run, 8, '8.8', 'Cellular: wrong APN (e.g. invalid.example) fails with cellular_failed'),
+    (v_run, 8, '8.9', 'Cellular: failover from cellular to cable works when cable is plugged in'),
+    (v_run, 8, '8.10', 'Cellular: portal APN override persists to provision.json and reconnects'),
+    (v_run, 8, '8.11', 'Saved phone hotspot is used when the dealer Wi-Fi is switched off'),
+    (v_run, 8, '8.12', 'Cable unplugged while running: fails over to Wi-Fi within 2 min, path updates'),
+    (v_run, 8, '8.13', 'Cable plugged back in: returns to ethernet, no reboot, no gap in heartbeats'),
+    (v_run, 8, '8.14', 'Wrong flashed Wi-Fi password: setup hotspot appears and the dashboard shows stuck_network with wrong_password'),
+    (v_run, 8, '8.15', 'Captive-portal network: box reports captive_portal rather than claiming to be online'),
+    (v_run, 8, '8.16', 'Pi Zero 2 W only sees 2.4 GHz networks and reports it clearly'),
+    (v_run, 8, '8.17', 'Pi 4 sees both 2.4 GHz and 5 GHz networks');
 
   return v_run;
 end;
@@ -104,8 +122,8 @@ $$;
 revoke execute on function public.qconnect_bench_start(text, text, text) from anon, public;
 grant execute on function public.qconnect_bench_start(text, text, text) to authenticated;
 
--- Go/no-go rule from the checklist: phases 1, 2 and 4 clean, phase 3 clean,
--- phase 7 clean. Any recorded failure anywhere is a no-go.
+-- Go/no-go rule from the checklist: all phases must be clean. Any open or failed
+-- check anywhere is a no-go.
 create or replace function public.qconnect_bench_finish(p_run_id uuid)
 returns text
 language plpgsql security definer set search_path = public as $$

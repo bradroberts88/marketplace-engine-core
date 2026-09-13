@@ -69,10 +69,10 @@ select case when public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc','{}'
 
 -- 9. bench run seeds the full checklist and the go/no-go rule holds
 select public.qconnect_bench_start('QCN-TEST-001','Bench VA','Pi Zero 2 W') as run \gset
-select case when count(*) = 40 then 'PASS 40 checklist steps seeded'
+select case when count(*) = 47 then 'PASS 47 checklist steps seeded'
             else 'FAIL seeded ' || count(*) end
 from public.qconnect_bench_checks where run_id = :'run';
-select case when count(*) = 10 then 'PASS connectivity phase seeded'
+select case when count(*) = 17 then 'PASS connectivity + cellular/AT&T phase seeded'
             else 'FAIL connectivity phase ' || count(*) end
 from public.qconnect_bench_checks where run_id = :'run' and phase = 8;
 select case when public.qconnect_bench_finish(:'run') = 'no_go'

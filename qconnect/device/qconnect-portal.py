@@ -42,9 +42,24 @@ REASONS = {
     "joined_but_no_internet": "Joined the network, but there is no internet behind it.",
     "captive_portal": "This network shows a sign-in page. It needs an open or pre-approved connection.",
     "cellular_no_apn": "A modem is fitted but no mobile APN was set at the bench.",
-    "cellular_failed": "The modem could not connect. Check the SIM and signal.",
+    "cellular_sim_locked": "The SIM is PIN-locked. Unlock it before shipping.",
+    "cellular_sim_disabled": "The SIM or modem RF is disabled. Check the SIM seating.",
+    "cellular_no_tower": "The modem cannot see a tower. Check the antenna and coverage.",
+    "cellular_failed": "The modem could not connect. Check the SIM, signal and APN.",
     "no_path": "No cable, no known Wi-Fi, no modem.",
 }
+
+# AT&T is the fleet default. The portal lets staff override it without reflashing.
+ATT_DEFAULT_APN = "broadband"
+ATT_APN_OPTIONS = ["broadband", "m2m.com.attz", "att.mvno", "nxtgenphone"]
+
+
+def provision_json():
+    return read_json(os.path.join(QCONNECT, "etc", "provision.json"))
+
+
+def current_cellular_apn():
+    return provision_json().get("cellular_apn") or ATT_DEFAULT_APN
 
 
 def read_json(path):
@@ -64,7 +79,7 @@ def read_text(path):
 
 
 def device_id():
-    return read_json(os.path.join(QCONNECT, "etc", "provision.json")).get("device_id", "QConnect")
+    return provision_json().get("device_id", "QConnect")
 
 
 def scan_ssids():
@@ -114,7 +129,17 @@ def ethernet_state():
 def modem_state():
     try:
         out = subprocess.run(["mmcli", "-L"], capture_output=True, text=True, timeout=8).stdout
-        return "modem fitted" if "Modem" in out else "no modem"
+        if "Modem" not in out:
+            return "no modem"
+        reg = subprocess.run(["mmcli", "-m", "any"], capture_output=True, text=True, timeout=8).stdout
+        state = ""
+        for line in reg.splitlines():
+            if "state:" in line.lower():
+                state = line.split(":", 1)[-1].strip().lower()
+                break
+        if state in ("registered", "connected"):
+            return f"modem on network ({state})"
+        return f"modem fitted ({state or 'searching'})"
     except Exception:
         return "no modem"
 
@@ -166,7 +191,7 @@ FORM = """
   <div><span>Last problem</span><b>{reason}</b></div>
 </div>
 <div class="sub">Plugging in a network cable is the fastest fix and needs nothing below.
-Otherwise pick the dealership Wi-Fi.</div>
+Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</div>
 <form method="POST" action="/setup">
   <label>Wi-Fi network</label>
   <select name="ssid">{options}</select>
@@ -176,6 +201,10 @@ Otherwise pick the dealership Wi-Fi.</div>
   <input name="pass" type="password" placeholder="Password (leave blank if open)">
   <div class="chk"><input type="checkbox" name="hidden" value="yes" id="h">
     <label for="h" style="margin:0">This network is hidden</label></div>
+  <label>AT&T cellular APN (used when a modem is fitted)</label>
+  <select name="cellular_apn">{apn_options}</select>
+  <label>Or type another APN</label>
+  <input name="cellular_apn_manual" placeholder="e.g. m2m.com.attz" value="{apn_manual}">
   <button type="submit">Connect</button>
 </form>
 """
@@ -212,10 +241,17 @@ class Portal(BaseHTTPRequestHandler):
         options = "".join(f"<option>{esc(s)}</option>" for s in scan_ssids())
         if not options:
             options = "<option value=''>(no scan available - type the name below)</option>"
+        current_apn = current_cellular_apn()
+        apn_options = "".join(
+            f"<option value='{esc(a)}'{' selected' if a == current_apn else ''}>{esc(a)}</option>"
+            for a in ATT_APN_OPTIONS
+        )
+        apn_manual = "" if current_apn in ATT_APN_OPTIONS else current_apn
         self._send(PAGE.format(body=FORM.format(
             dev=esc(device_id()), options=options, error=error,
             eth=esc(ethernet_state()), modem=esc(modem_state()),
-            reason=esc(message))), code)
+            reason=esc(message), apn_options=apn_options,
+            apn_manual=esc(apn_manual))), code)
 
     def do_GET(self):
         # OS captive-portal probes: answer with a redirect so the phone
@@ -233,10 +269,25 @@ class Portal(BaseHTTPRequestHandler):
         ssid = (data.get("ssid_manual", [""])[0] or data.get("ssid", [""])[0]).strip()
         password = data.get("pass", [""])[0]
         hidden = "yes" if data.get("hidden") else "no"
+        apn = (data.get("cellular_apn_manual", [""])[0] or data.get("cellular_apn", [""])[0]).strip()
         if not ssid:
             self._form(400)
             return
         os.makedirs(STATE_DIR, exist_ok=True)
+        # Persist the APN back to provision.json so cellular works on the next
+        # connect_any pass without a reflash. AT&T default is "broadband".
+        if apn:
+            prov_path = os.path.join(QCONNECT, "etc", "provision.json")
+            try:
+                prov = read_json(prov_path)
+                if prov.get("cellular_apn") != apn:
+                    prov["cellular_apn"] = apn
+                    tmp = prov_path + ".tmp"
+                    with open(tmp, "w") as f:
+                        json.dump(prov, f, indent=2)
+                    os.replace(tmp, prov_path)
+            except OSError:
+                pass
         # Clear the old verdict so the page does not show a stale failure.
         try:
             os.remove(RESULT_FILE)

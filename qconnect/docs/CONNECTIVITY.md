@@ -31,7 +31,7 @@ instead of being mistaken for a working connection.
 | There is a spare network socket | Plug in the cable. Nothing else. |
 | Wi-Fi details were given at the bench | Plug in power. Nothing else. |
 | Wi-Fi password changed, or was wrong | Join `QConnect-Setup-<id>` on a phone (password `qconnect123`), the page opens by itself, pick the network, type the password. The page says straight away whether the password was right. |
-| No Wi-Fi and no cable | Fit a USB modem with a data SIM, set the APN at the bench. |
+| No Wi-Fi and no cable | Fit a USB modem with an AT&T SIM. The APN defaults to `broadband`; for IoT/M2M plans use `m2m.com.attz`, for MVNOs use `att.mvno`. |
 | Nothing works yet | Tether to a phone hotspot once; it is remembered as a permanent fallback. |
 
 ## What you do at the bench
@@ -48,7 +48,7 @@ identity, Tailscale key and database details:
   --supabase-anon-key sb_publishable_... \
   --supabase-service-key sb_secret_... \
   --wifi-ssid "DealerGuest" --wifi-pass "guestpass123" \
-  --cellular-apn broadband \
+  --cellular-apn broadband   `# AT&T default; m2m.com.attz for IoT plans` \
   --hotspot-ssid "Sales iPhone" --hotspot-pass "..."
 ```
 
