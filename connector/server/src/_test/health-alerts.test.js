@@ -2,7 +2,7 @@
 /*
  * Hub health-alert de-duping + the planned-vs-real disconnect distinction.
  *
- * WHY THIS EXISTS (2026-08-17 field logs). The de-dupe state (`_alerted`) and the throttled-word accumulator
+ * WHY THIS EXISTS (08/17/2026 field logs). The de-dupe state (`_alerted`) and the throttled-word accumulator
  * lived on the LIVE agent entry, which registerAgent() rebuilds from scratch on every (re)connect — while the
  * agent refreshes its control link every ~2 minutes by design. So both were wiped every couple of minutes: one
  * device re-fired the identical rootfs alert ~30 times in 100 minutes, which is enough to bury a real alert.
