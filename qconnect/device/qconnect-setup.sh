@@ -115,6 +115,14 @@ ap_fallback_cycle() {
       start_ap   # re-raise the AP (joining the dealer network tore it down)
       deadline=$(( $(date +%s) + AP_WINDOW ))
     fi
+    # Staff pressed Retry on the setup page (they just plugged a cable in, or
+    # re-seated the SIM). Go straight back round the whole list.
+    if [ -f "$STATE/retry-now" ]; then
+      rm -f "$STATE/retry-now"
+      log "Retry requested from the setup page."
+      stop_ap
+      return 1
+    fi
     sleep 5
   done
   stop_ap
