@@ -2,7 +2,7 @@
 # Add / change a WiFi network on the box. MULTIPLE networks can be saved at once (e.g. the dealership WiFi AND a
 # phone hotspot): NetworkManager auto-joins whichever is in RANGE, prefers the HIGHEST priority when both are, and
 # auto-fails-over when one drops — so the box rides out a dead dealership router with nobody on site (operator
-# 2026-07-15, after Roger's network proved unreliable). Ethernet, if plugged in, still wins over all WiFi.
+# 07/15/2026, after Roger's network proved unreliable). Ethernet, if plugged in, still wins over all WiFi.
 #
 #   add/update:  sudo bash set-wifi.sh "<SSID>" "<password>" [priority]   (higher priority = preferred; default 10)
 #   list:        sudo bash set-wifi.sh --list

@@ -27,7 +27,7 @@ This is the first batch of material; more is on the way.
 | `install-dealership.md` | Dealership-facing install guide for the AutoPost desktop app. |
 | `TECHNICAL-DESIGN.md` | Technical design document: goals, topology, data/control planes, security, failure behaviour. |
 | `SOFTWARE-DESIGN.md` | Software design document: module boundaries, interfaces, state machines, conventions, testing. |
-| `PI-CONNECT-FAILURE-ANALYSIS.md` | The 13/09/2026 connection review, kept unchanged as the dated record. |
+| `PI-CONNECT-FAILURE-ANALYSIS.md` | The 09/13/2026 connection review, kept unchanged as the dated record. |
 | `PI-CONNECT-DEFECT-REGISTER.md` | Every defect from that review in one list, with its status in the current code. |
 | `PI-OWNERS-GUIDE.md` | Plain-English getting-started guide for non-developers who receive a Pi box. |
 | `pdf/` | Styled PDFs of the two design documents, the defect register, and the owner's guide. |
@@ -50,8 +50,8 @@ This is the first batch of material; more is on the way.
 | `src/dashboard.js` | Local 127.0.0.1 status dashboard: tunnel health, public IP/geo/latency probe, rep list. |
 | `src/tunnel.js` | Data-plane egress with the LAN-isolation guard (blocks private/loopback/link-local/CGNAT, IPv4 + IPv6, fail closed). |
 | `src/wifi-recovery.js` | On-device WiFi rescue daemon (`autopost-wifi-recovery.service`): raises an "AutoPost-Setup" access point with a captive setup page when a unit is stranded on wrong WiFi credentials. |
-| `src/_test/planned-refresh.test.js` | Guards the pre-cap link-refresh gate (the 2026-08-17 mid-session cuts). |
-| `src/_test/config-resilience.test.js` | Guards the zero-length `config.json` deadlock fixes (the 2026-08-30 field failure). |
+| `src/_test/planned-refresh.test.js` | Guards the pre-cap link-refresh gate (the 08/17/2026 mid-session cuts). |
+| `src/_test/config-resilience.test.js` | Guards the zero-length `config.json` deadlock fixes (the 08/30/2026 field failure). |
 | `src/_test/wifi-recovery.test.js` | Unit tests for the WiFi-recovery helpers and its single-radio, never-strand state machine. |
 | `electron-main.js` | Desktop shell: tray app, child-process connector, native dashboard window; also the VA card-flasher mode. |
 | `electron-builder-flasher.json` | electron-builder target for the separate VA Pi Setup card-writer app. |

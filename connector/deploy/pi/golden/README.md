@@ -5,7 +5,7 @@
 Built images are published as GitHub release assets, never committed to git.
 
 **Release:** [`autpost-golden`](https://github.com/bradroberts88/marketplace-engine-core/releases/tag/autpost-golden)
-(published 10/09/2026 — tag spelling is intentional)
+(published 09/10/2026 — tag spelling is intentional)
 
 | Image | Target hardware | Size | Download |
 |---|---|---|---|

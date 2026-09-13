@@ -15,7 +15,7 @@ checks nothing is missing, installs Raspberry Pi Imager if this PC does not
 have it yet, loads the bench settings, and opens the app.
 
 
-WHAT IS NEW IN THIS BUILD (30 August 2026, build 2)
+WHAT IS NEW IN THIS BUILD (08/30/2026, build 2)
 --------------------------------------------------
 
   FIXES THE "form is not defined" CRASH
@@ -24,7 +24,7 @@ WHAT IS NEW IN THIS BUILD (30 August 2026, build 2)
       that exact confirm dialog, so the same class of fault cannot ship
       again unnoticed. If you downloaded build 1, delete it and use this.
 
-The Pi images in here were rebuilt on 27 August and are NEWER than anything
+The Pi images in here were rebuilt on 08/27/2026 and are NEWER than anything
 flashed before. Cards written from this bundle get all of the following. Full
 detail is in WIFI-RESCUE.md.
 

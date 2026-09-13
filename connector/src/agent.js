@@ -47,7 +47,7 @@ const CFG_PATH = process.env.CONNECTOR_CONFIG || path.join(__dirname, '..', 'con
 // writeFileSync+renameSync is atomic for READERS but says nothing about durability: the rename can reach the
 // disk while the data it points at is still in page cache. Cut the power inside that window and ext4 hands
 // back a ZERO-LENGTH file. Not theoretical — that is exactly how a fielded unit lost its config.json on
-// 2026-08-30, after which it could neither start (invalid JSON) nor re-claim (an empty file still satisfied
+// 08/30/2026, after which it could neither start (invalid JSON) nor re-claim (an empty file still satisfied
 // the old ConditionPathExists). Every config write goes through here now.
 function writeJsonDurable(file, obj, mode) {
   const tmp = file + '.tmp';
@@ -65,7 +65,7 @@ function loadConfig() {
     const c = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
     // Seed the backup on the FIRST good load, not only when the hub pushes a config. A unit that never
     // receives a push had no .bak at all, so the recovery below had nothing to recover from — which is why
-    // the 2026-08-30 failure was unrecoverable in the field.
+    // the 08/30/2026 failure was unrecoverable in the field.
     try { if (!fs.existsSync(CFG_PATH + '.bak')) writeJsonDurable(CFG_PATH + '.bak', c, 0o600); } catch (_) { /* best effort */ }
     return c;
   }
@@ -114,7 +114,7 @@ const ALLOW_PORTS = Array.isArray(cfg.allowedPorts) ? cfg.allowedPorts.map(Numbe
 // GoLogin's Orbita browser probes an IP-geolocation service (geo.myip.link) on EVERY launch to spoof the exit
 // IP's timezone/locale. It is required for every session and is NOT a per-dealership choice, so it is ALWAYS
 // permitted even under a Facebook-only allow-list — it is a read-only IP lookup, never a general egress path.
-// Without it the anti-detect browser aborts BEFORE it can reach Facebook (observed live 2026-07-08 on Jasmine's
+// Without it the anti-detect browser aborts BEFORE it can reach Facebook (observed live 07/08/2026 on Jasmine's
 // tunnel: 403 off-allowlist at the hub, then "destination not allowed by agent" here). Pinned to the EXACT host
 // the probe uses (NOT a *.myip.link suffix) so a compromised VPS can't drive egress to any myip.link subdomain.
 const ALWAYS_ALLOW_EXACT = ['geo.myip.link'];
@@ -138,7 +138,7 @@ let reconnectMs = 2000;
 let lastConnectedAt = 0;
 const WATCHDOG_MAX_DOWN_MS = Math.max(60000, parseInt(process.env.CONNECTOR_MAX_DOWN_MS || '600000', 10));
 
-// DATA-PLANE SELF-HEAL (passive) — the failure that took Roger's tunnel down for hours on 2026-07-13: the control
+// DATA-PLANE SELF-HEAL (passive) — the failure that took Roger's tunnel down for hours on 07/13/2026: the control
 // channel stayed perfectly healthy (heartbeat + 240s reconnect fine, agent showed LIVE) while the agent could no
 // longer open NEW outbound sockets for rep streams, so reps got "tunneling socket could not be established" with
 // NO self-recovery. We detect it from REAL traffic, not a synthetic probe: a bare connect to the CONTROL host
@@ -166,7 +166,7 @@ function maybeDataPlaneRestart() {
   const { f, hist } = dpRestartHistory();
   if (hist.length >= DP_RESTART_MAX) { if (farFails === FAR_FAIL_MAX) log('data-plane wedge suspected but self-restart limit reached (' + DP_RESTART_MAX + ' in ' + Math.round(DP_RESTART_WINDOW_MS / 60000) + 'min) — leaving it to the VPS watchdog'); return; }
   try { fs.mkdirSync(RUNTIME_DIR, { recursive: true }); hist.push(Date.now()); fs.writeFileSync(f, JSON.stringify(hist)); } catch (_) { /* best effort */ }
-  log('DATA-PLANE WEDGED: ' + farFails + ' consecutive far-socket opens failed while the control link is UP — exiting for a clean service restart (2026-07-13 self-heal)');
+  log('DATA-PLANE WEDGED: ' + farFails + ' consecutive far-socket opens failed while the control link is UP — exiting for a clean service restart (07/13/2026 self-heal)');
   try { ws && ws.close(1001, 'dataplane-wedged'); } catch (_) { /* ignore */ }
   process.exit(1);
 }
@@ -188,16 +188,16 @@ const PONG_TIMEOUT_MS = Math.max(45000, HB_MS * 3);
 // flight, we cleanly close + immediately reopen (a sub-second blip while idle). Posts therefore always run on a
 // young link far from the cap. If a post IS in flight we wait for it to finish (poll), leaving the middlebox as
 // the only backstop — never worse than today, and the hub's alert-grace hides the blip.
-// Default 120s (2 min): lowered from 240s (2026-07-14) after recurring tunnel SESSION_LOST — a photo-heavy post
+// Default 120s (2 min): lowered from 240s (07/14/2026) after recurring tunnel SESSION_LOST — a photo-heavy post
 // can run 5-8 min, so at 240s a post starting on a ~240s-old link could cross the ~600s network middlebox cut
 // mid-post. 120s keeps the link young enough that even a ~7-8 min post finishes before the cap. The hub also
 // pushes this on every (re)connect (survives an agent restart). Override per-dealership via config.plannedReconnectMs.
 const PLANNED_RECONNECT_MS = Math.max(60000, parseInt(cfg.plannedReconnectMs || process.env.CONNECTOR_PLANNED_RECONNECT_MS || '120000', 10));
-// IDLE MUST MEAN "NO BYTES MOVING", NOT "NO SOCKETS OPEN" (2026-08-17). The refresh above used to wait for
+// IDLE MUST MEAN "NO BYTES MOVING", NOT "NO SOCKETS OPEN" (08/17/2026). The refresh above used to wait for
 // streams.size === 0. But a rep's browser holds HTTP keep-alive sockets to Facebook open for the WHOLE session,
 // so the socket count never returns to 0 while anyone is working: the refresh only ever fired when nobody was
 // posting, the link aged straight into the ~600s middlebox cap, and the middlebox severed it mid-session and
-// took every stream with it. The 2026-08-17 field logs show exactly that — four cuts at ~10m13s of link age,
+// took every stream with it. The 08/17/2026 field logs show exactly that — four cuts at ~10m13s of link age,
 // 8-10 live streams dropped each, versus clean sub-second refreshes for the whole hour the box sat idle.
 // So we refresh during a genuine LULL (no bytes on any stream for STREAM_QUIET_MS), which is common between
 // posts, and if no lull ever comes we refresh anyway at PLANNED_RECONNECT_MAX_MS — deliberately below the cap,
@@ -487,7 +487,7 @@ function onConfig(c) {
     for (const k of HOT_CONFIG_KEYS) if (k in c) { const cv = clampHot(k, c[k]); if (cv !== undefined) patch[k] = cv; }
     if (!Object.keys(patch).length) { log('remote config: no applicable/valid keys (allowed: ' + HOT_CONFIG_KEYS.join(',') + ')'); return; }
     const cur = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
-    // IDEMPOTENT (root cause of the pi-pilot flap, 2026-07-17): the hub RE-PUSHES this tuning config on EVERY
+    // IDEMPOTENT (root cause of the pi-pilot flap, 07/17/2026): the hub RE-PUSHES this tuning config on EVERY
     // (re)connect so it survives an agent restart. If nothing actually CHANGED, we must NOT rewrite the file +
     // process.exit(0) to reload — otherwise connect -> config -> exit -> systemd restart -> reconnect -> config
     // -> exit loops forever and the tunnel never stays up (egress dead). Only act on a REAL delta.
@@ -625,7 +625,7 @@ function onRestart(m) {
 // KEEPS the existing WiFi as a fallback — so a wrong password can never strand the device. The Pi auto-joins the
 // new network whenever it is in range (e.g. the moment the box is powered on at the dealership). No terminal,
 // no per-device SSH: the operator types the creds in super-admin at onboarding and they land here.
-// MULTI-NETWORK (operator 2026-07-15): the box can hold SEVERAL WiFi networks (dealership WiFi + a phone hotspot)
+// MULTI-NETWORK (operator 07/15/2026): the box can hold SEVERAL WiFi networks (dealership WiFi + a phone hotspot)
 // and NetworkManager auto-fails-over between them. action: 'set' (add/update, default) | 'prefer' (switch to it) |
 // 'remove'. priority: higher wins when both are in range. Adding a network never clobbers the others.
 function onWifi(m) {
@@ -635,7 +635,7 @@ function onWifi(m) {
   const priority = String(parseInt((m && m.priority), 10) || 10);
   // hidden: non-broadcasting SSID (must be probed for). enterpriseUser: WPA-Enterprise 802.1x identity — corporate
   // WiFi with a username+password instead of a shared key. Both are common at dealerships and, without them, the
-  // box simply cannot join that network (added 2026-07-15).
+  // box simply cannot join that network (added 07/15/2026).
   const hidden = !!(m && m.hidden);
   const enterpriseUser = String((m && m.enterpriseUser) || '').trim();
   if (!ssid || ssid.length > 64 || password.length > 128 || enterpriseUser.length > 128) { send({ type: 'wifi-result', ok: false, reason: 'bad_ssid_or_password' }); return; }

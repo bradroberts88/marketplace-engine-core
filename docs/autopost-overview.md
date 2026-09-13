@@ -92,7 +92,7 @@ Two paths, and they are independent:
    private key that pairs with `UPDATE_PUBKEY_PEM` pinned in `agent.js`. The agent refuses anything
    unsigned.
 
-> **`agent-build.js` has been regenerated** from the fixed `src\agent.js` (2026-08-17) and is now
+> **`agent-build.js` has been regenerated** from the fixed `src\agent.js` (08/17/2026) and is now
 > byte-identical to it. It was previously 514 lines against 657 — stale enough to predate
 > `hostTelemetry`, `rootfsOverlay` and the data-plane wedge self-heal.
 >
@@ -112,7 +112,7 @@ Two paths, and they are independent:
 
 ## Current production images
 
-**Both** were rebuilt 2026-08-21. They contain the link-refresh fix (fix 1 below) **and** the
+**Both** were rebuilt 08/21/2026. They contain the link-refresh fix (fix 1 below) **and** the
 capture-WiFi-on-first-boot support, so a no-WiFi card raises its AP straight away rather than after ~105s.
 
 | File | Hardware | Notes |
@@ -158,10 +158,10 @@ The Pi-side half lives in `source\src\wifi-recovery.js` (`noSavedWifi`): it dete
 live NetworkManager state rather than a flag baked on the card, so it is self-clearing the instant any network
 is saved, and it equally rescues a box that lost its profiles some other way.
 
-> Requires a golden image built on or after 2026-08-21 — both current images qualify. On an older image a
+> Requires a golden image built on or after 08/21/2026 — both current images qualify. On an older image a
 > no-WiFi card still works, but waits out the first-run graces (~105s) before the AP appears.
 
-## Fixes applied 2026-08-17
+## Fixes applied 08/17/2026
 
 All three came out of the connection logs for a device that was reconnecting every ~2 minutes and
 alerting on every reconnect. Covered by `tools\RUN-TESTS.cmd` (26 new assertions).

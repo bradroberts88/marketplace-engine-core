@@ -122,7 +122,7 @@ same claim code.
 | Heartbeat stale | Dealership marked down within `heartbeatTimeoutMs`; same 503 path. |
 | App crashes (Windows) | Keep-alive scheduled task relaunches at logon and every minute, on battery too. |
 | App wedged (Windows) | Heartbeat older than 90 s triggers a forced restart. |
-| Zero-length `config.json` | Guarded by `config-resilience` tests after the 2026-08-30 field failure; writes are atomic. |
+| Zero-length `config.json` | Guarded by `config-resilience` tests after the 08/30/2026 field failure; writes are atomic. |
 | Mid-session link cut | Pre-cap link refresh gate, guarded by the `planned-refresh` tests. |
 | Wrong WiFi credentials | Device raises `AutoPost-Setup` AP with a captive page; BLE setup path as backup. |
 | Bad update | Signature check rejects unsigned/altered bundles; rollback on failed start. |

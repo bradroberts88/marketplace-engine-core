@@ -81,7 +81,7 @@ mkdir -p "$WORK"; IMG="$WORK/autopost-golden.img"; MNT="$WORK/mnt"
 # binfmt entry is needed — registering one anyway is actively destructive: the handler would match the host's own
 # binaries and route them through an interpreter that is itself such a binary, so every exec recurses until the
 # kernel gives up with ELOOP and the whole environment stops working until it is unregistered. That is exactly
-# what happened on 2026-08-17 building arm64 on an ARM64 Windows/WSL host (`sed`, `head`, `/bin/true` all died).
+# what happened on 08/17/2026 building arm64 on an ARM64 Windows/WSL host (`sed`, `head`, `/bin/true` all died).
 if [ "$HOST_ARCH" = "$ARCH" ]; then
   LOG "host is already $ARCH — running the chroot NATIVELY (no emulation, much faster)"
 else
@@ -94,7 +94,7 @@ if ! grep -qs enabled "/proc/sys/fs/binfmt_misc/$BINFMT_NAME" 2>/dev/null; then
   # Try the packaged definition first, but do NOT branch on its exit status: for qemu-aarch64 it exits non-zero
   # with "not in database of installed binary formats", and it can equally exit 0 without registering anything.
   # Re-check the actual kernel state instead, then hand-register. (Branching on that exit code is exactly what
-  # left arm64 unregistered on 2026-08-17 and aborted the first Pi 4 bake.)
+  # left arm64 unregistered on 08/17/2026 and aborted the first Pi 4 bake.)
   update-binfmts --enable "$BINFMT_NAME" >/dev/null 2>&1 || true
   if [ ! -e "/proc/sys/fs/binfmt_misc/$BINFMT_NAME" ]; then
     printf '%s' ":$BINFMT_NAME:M::$ELF_MAGIC:$ELF_MASK:$QEMU:F" \
@@ -209,7 +209,7 @@ install -d "$MNT/etc/systemd/system/NetworkManager.service.d"
 printf '[Unit]\nRequiresMountsFor=/var/lib/autopost\n' > "$MNT/etc/systemd/system/NetworkManager.service.d/10-autopost-data.conf"
 [ -L "$MNT/etc/NetworkManager/system-connections" ] || { echo "ERROR: NM system-connections symlink not created"; exit 1; }
 grep -q 'AUTOPOST-DATA' "$MNT/etc/fstab" || { echo "ERROR: AUTOPOST-DATA fstab entry missing"; exit 1; }
-# NOTE (2026-07-21, verified on hardware): do NOT symlink /var/lib/tailscale onto AUTOPOST-DATA. tailscaled's own
+# NOTE (07/21/2026, verified on hardware): do NOT symlink /var/lib/tailscale onto AUTOPOST-DATA. tailscaled's own
 # unit uses `StateDirectory=tailscale`, which REQUIRES /var/lib/tailscale to be a REAL directory — a symlink there
 # makes systemd refuse to set up the state dir, so tailscaled never starts and the whole Tailscale/SSH join dies in
 # a crash loop. So tailscale state stays on the rootfs via StateDirectory: it persists fine WITHOUT the overlay
@@ -349,7 +349,7 @@ LOG "AUTOPOST-DATA partition present"
 LOG "compressing final image"
 # COMPRESS ON THE WSL-NATIVE DISK, THEN COPY THE RESULT ACROSS. Compressing in OUT_DIR meant xz doing millions of
 # small reads and writes against a ~4GB file on /mnt/c, i.e. over the 9p bridge to the Windows filesystem (with
-# Defender inspecting it): measured 2026-08-21 at ~35 minutes, against ~3 minutes for the identical image
+# Defender inspecting it): measured 08/21/2026 at ~35 minutes, against ~3 minutes for the identical image
 # compressed on the ext4 side. Same bytes either way, one big sequential copy at the end instead.
 # Compress with -c, straight OUT of $IMG into a staging file, and never move or delete $IMG itself. An earlier
 # version staged via `STAGE="$WORK/${OUT_NAME}.img"` + `rm -f "$STAGE"` -- and for ARCH=arm64, OUT_NAME really is

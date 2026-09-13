@@ -31,7 +31,7 @@ echo.
 echo   === connector: wifi recovery ===
 node src\_test\wifi-recovery.test.js || set "FAILED=1"
 echo.
-echo   === connector: config resilience (the 2026-08-30 zero-byte config.json) ===
+echo   === connector: config resilience (the 08/30/2026 zero-byte config.json) ===
 rem Deliberately OUTSIDE the electron gate: this covers the failure that bricked a customer unit,
 rem and a suite that silently skips reads exactly like a suite that passed.
 node src\_test\config-resilience.test.js || set "FAILED=1"

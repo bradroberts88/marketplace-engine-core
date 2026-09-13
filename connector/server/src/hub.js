@@ -73,7 +73,7 @@ class Hub {
     // De-dupe + accumulator state MUST live on the PERSISTENT per-device record, never on the live agent entry:
     // registerAgent() builds a brand-new agent object on every (re)connect (it carries over only host/version),
     // and the agent refreshes its control link every ~2 min BY DESIGN. State parked on `a` was therefore wiped
-    // every couple of minutes, which silently defeated both guarantees below. On 2026-08-17 one device re-fired
+    // every couple of minutes, which silently defeated both guarantees below. On 08/17/2026 one device re-fired
     // the same rootfs alert ~30 times in 100 minutes — enough to bury a real alert behind the noise.
     const lk = this._lk(dealershipId);
     lk.alerted = lk.alerted || {};
@@ -375,7 +375,7 @@ class Hub {
     if (a.telemetry) { lk.telemetry = a.telemetry; lk.telemetryAt = a.telemetryAt || lk.telemetryAt; }
     lk.connectedAt = a.connectedAt || lk.connectedAt;
     const killed = this._dropStreams(dealershipId);
-    // Say WHICH kind of drop this was in the event log. The 2026-08-17 log read `failed closed, 8 live stream(s)
+    // Say WHICH kind of drop this was in the event log. The 08/17/2026 log read `failed closed, 8 live stream(s)
     // dropped` for both the agent's own refresh and the middlebox severing the link, which made a real recurring
     // outage look identical to routine housekeeping.
     this.recordEvent(dealershipId, 'disconnected', `${planned ? 'planned link refresh' : 'failed closed'}${killed ? `, ${killed} live stream(s) dropped` : ''}`);
@@ -430,7 +430,7 @@ class Hub {
 
   // DATA-PLANE SELF-TEST: open a REAL test stream to Facebook through this dealership's agent and resolve whether
   // the far socket actually establishes. This is how the watchdog catches a WEDGED agent — one whose control
-  // channel is healthy (live=true) but that can no longer open outbound sockets (the 2026-07-13 failure that took
+  // channel is healthy (live=true) but that can no longer open outbound sockets (the 07/13/2026 failure that took
   // Roger's tunnel down for hours with no error). A no-op sink stands in for a rep browser; we relay zero bytes
   // and close the instant the far socket opens. Target MUST be Facebook — the agent's own allow-list refuses
   // anything else, so a non-FB probe would false-fail.
@@ -439,7 +439,7 @@ class Hub {
   // fix) is not mistaken for a wedge. timeoutMs is set ABOVE the agent's own 20s connect timeout (tunnel.js) so a
   // slow-but-working open is not clipped to a false wedge. Returns {ok} on establish, {ok:false,wedged:true} on a
   // genuine far-socket failure, or {ok:false,skip:true} when the agent is not-live/paused/at-cap (NOT a wedge).
-  // WEDGE PROBE — must target the host the reps ACTUALLY use. It probed geo.myip.link until 2026-07-15, which
+  // WEDGE PROBE — must target the host the reps ACTUALLY use. It probed geo.myip.link until 07/15/2026, which
   // let a real wedge hide: Roger's agent opened geo.myip.link fine ("established" => watchdog saw healthy) while
   // www.facebook.com returned 000 for hours, so the auto-restart never fired and his reps silently couldn't post.
   // Probing Facebook itself makes the probe as strong as reality (facebook.com is in the agent's host allowlist).

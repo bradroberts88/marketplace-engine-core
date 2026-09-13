@@ -115,7 +115,7 @@ wrong WiFi, and **never corrupts** on a power cut.
 ---
 
 ## Safeguards & resilience — what protects a shipped box
-Every safeguard is baked in. **✅ = proven on real hardware** (2026-07-21, Rickys-Dealership test).
+Every safeguard is baked in. **✅ = proven on real hardware** (07/21/2026, Rickys-Dealership test).
 
 **Never routes through the wrong IP**
 - ✅ **Fail-closed egress** — if the box can't reach us (wrong WiFi, offline, powered off) it routes **nothing**. Reps hold + retry; they never fall back to a wrong IP.
@@ -153,4 +153,4 @@ Every safeguard is baked in. **✅ = proven on real hardware** (2026-07-21, Rick
 - **Multi-rep concurrency:** if a dealership runs several reps through one box, confirm N concurrent sessions egress
   correctly under load.
 
-_Last updated: 2026-07-21._
+_Last updated: 09/13/2026._

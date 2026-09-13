@@ -67,7 +67,7 @@ allowed.
 
 Redeems a one-time setup code against the claim endpoint and writes `config.json` **atomically**
 (temp file, fsync, rename) so a power cut cannot leave a zero-length config — the failure mode
-that caused the 2026-08-30 field incident and is now covered by `config-resilience.test.js`.
+that caused the 08/30/2026 field incident and is now covered by `config-resilience.test.js`.
 
 `config.json` shape (placeholders only in `config.example.json`):
 

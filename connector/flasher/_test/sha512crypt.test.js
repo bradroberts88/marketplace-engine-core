@@ -16,7 +16,7 @@ let pass = 0; const fail = [];
 const t = (name, fn) => { try { fn(); pass++; } catch (e) { fail.push(name + ' :: ' + e.message); } };
 
 // ── the specification's own vectors ───────────────────────────────────────────────────────────────────────────
-// PROVENANCE: every expected value below was re-generated on 2026-08-14 by calling glibc's own crypt(3) directly
+// PROVENANCE: every expected value below was re-generated on 08/14/2026 by calling glibc's own crypt(3) directly
 // (a small C program linked against -lcrypt, run under WSL Ubuntu) — an implementation completely independent of
 // this one. Do NOT "fix" a failing vector by pasting in whatever this module currently outputs; that turns the
 // test into a mirror and it stops proving anything. Regenerate against glibc instead.

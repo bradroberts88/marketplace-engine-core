@@ -149,7 +149,7 @@ t('firstRunScript enables the USB ethernet gadget in config.txt AND cmdline.txt'
   assert.ok(s.includes('modules-load=dwc2'), 'cmdline.txt loads the dwc2 driver');
 });
 
-// REGRESSION (hardware-confirmed 2026-08-14, Pi Zero W): the legacy `g_ether` gadget module has been REMOVED from
+// REGRESSION (hardware-confirmed 08/14/2026, Pi Zero W): the legacy `g_ether` gadget module has been REMOVED from
 // current Raspberry Pi OS kernels. `modules-load=dwc2,g_ether` therefore loaded nothing, and Pi OS's own CDC-ACM
 // serial gadget kept the UDC - the Pi enumerated as a COM port (Class_02/SubClass_02/Prot_FF, one function, no
 // ethernet interface) that Windows could not even open. The gadget MUST be built with libcomposite/configfs.
@@ -202,7 +202,7 @@ t('the gadget script lives on the FAT boot partition so it is editable from a ca
   assert.ok(/ExecStart=\/bin\/bash \$\{GADGET_SH\}/.test(s), 'invoked via bash so it never depends on a FAT exec bit');
 });
 
-// REGRESSION: golden images built before 2026-08-14 ship a wifi-recovery.js that cannot raise the rescue AP on a
+// REGRESSION: golden images built before 08/14/2026 ship a wifi-recovery.js that cannot raise the rescue AP on a
 // Zero W (missing wifi-sec.pmf -> NM negotiates WPA-PSK-SHA256 -> BCM43430 rejects the key in AP mode).
 t('firstrun hot-patches the rescue-AP PMF bug in an OLD golden image, safely and idempotently', () => {
   const s = firstRunScript({ networks: N });
@@ -282,7 +282,7 @@ t('configTxtPatched appends under [all], is idempotent, and honours opt-out', ()
   // config.txt is parsed by the VideoCore firmware before Linux exists — keep every byte we add ASCII.
   assert.ok(!/[^\x00-\x7F]/.test(out.slice(base.length)), 'appended config.txt bytes must be pure ASCII');
 });
-// REGRESSION (hardware-confirmed 2026-08-14, Pi Zero W): stock Pi OS config.txt already contains
+// REGRESSION (hardware-confirmed 08/14/2026, Pi Zero W): stock Pi OS config.txt already contains
 // `dtoverlay=dwc2,dr_mode=host` at column 0 under [cm5]. The original guard was `^dtoverlay=dwc2`, which matched
 // that line, decided the overlay was already configured, and skipped the append entirely. The card shipped with
 // g_ether on the kernel cmdline but the controller still in HOST mode -> no usb0 -> nothing enumerated on USB.
