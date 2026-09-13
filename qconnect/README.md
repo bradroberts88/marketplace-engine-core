@@ -55,8 +55,8 @@ Beyond the review, the card-side scripts were rebuilt to fix the "identical card
 failures catalogued in `../docs/PI-CONNECT-FAILURE-ANALYSIS.md`: automatic pre-registration, one
 Tailscale key per card, the correct boot mountpoint for the first-run hook, `RequiresMountsFor=` on
 every unit that tests a file on a mounted partition, a hard NetworkManager check at install time, and
-a connection manager that falls back between cable, Wi-Fi, cellular and hotspot and reports why it
-failed.
+a connection manager that falls back between cable, Wi-Fi, AT&T cellular (APN `broadband` by default)
+and hotspot and reports why it failed.
 
 Two things the review calls out that software cannot fix for you, both in `docs/SECURITY-REVIEW.md`:
 create Tailscale keys as `tag:qconnect` with a 90-day expiry and ACLs that cage those nodes, and
