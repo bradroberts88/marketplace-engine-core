@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicDeviceHeartbeatRouteImport } from './routes/api/public/device-heartbeat'
+import { Route as ApiPublicQconnectDeviceAlertRouteImport } from './routes/api/public/qconnect/device-alert'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -24,6 +25,12 @@ const ApiPublicDeviceHeartbeatRoute =
   ApiPublicDeviceHeartbeatRouteImport.update({
     id: '/api/public/device-heartbeat',
     path: '/api/public/device-heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicQconnectDeviceAlertRoute =
+  ApiPublicQconnectDeviceAlertRouteImport.update({
+    id: '/api/public/qconnect/device-alert',
+    path: '/api/public/qconnect/device-alert',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
@@ -46,6 +53,7 @@ const LovableEmailTransactionalPreviewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
+  '/api/public/qconnect/device-alert': typeof ApiPublicQconnectDeviceAlertRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -53,6 +61,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
+  '/api/public/qconnect/device-alert': typeof ApiPublicQconnectDeviceAlertRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -61,6 +70,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/public/device-heartbeat': typeof ApiPublicDeviceHeartbeatRoute
+  '/api/public/qconnect/device-alert': typeof ApiPublicQconnectDeviceAlertRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -70,6 +80,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api/public/device-heartbeat'
+    | '/api/public/qconnect/device-alert'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -77,6 +88,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/public/device-heartbeat'
+    | '/api/public/qconnect/device-alert'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -84,6 +96,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api/public/device-heartbeat'
+    | '/api/public/qconnect/device-alert'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -92,6 +105,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPublicDeviceHeartbeatRoute: typeof ApiPublicDeviceHeartbeatRoute
+  ApiPublicQconnectDeviceAlertRoute: typeof ApiPublicQconnectDeviceAlertRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -111,6 +125,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/device-heartbeat'
       fullPath: '/api/public/device-heartbeat'
       preLoaderRoute: typeof ApiPublicDeviceHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/qconnect/device-alert': {
+      id: '/api/public/qconnect/device-alert'
+      path: '/api/public/qconnect/device-alert'
+      fullPath: '/api/public/qconnect/device-alert'
+      preLoaderRoute: typeof ApiPublicQconnectDeviceAlertRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/auth/preview': {
@@ -140,6 +161,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPublicDeviceHeartbeatRoute: ApiPublicDeviceHeartbeatRoute,
+  ApiPublicQconnectDeviceAlertRoute: ApiPublicQconnectDeviceAlertRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
