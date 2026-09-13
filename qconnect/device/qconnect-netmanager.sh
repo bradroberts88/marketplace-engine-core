@@ -226,21 +226,50 @@ try_wifi() {
 # ----------------------------------------------------------------- cellular
 # Deliberately hardware-agnostic: anything ModemManager enumerates works, so the
 # exact USB stick or hat can be chosen later without touching this code.
+#
+# AT&T SIM cards are the fleet default. If no APN is configured, the manager
+# falls back to "broadband" (AT&T consumer/IoT data). Other common AT&T APNs:
+#   - m2m.com.attz  : AT&T IoT/M2M plans
+#   - att.mvno      : AT&T MVNO/reseller plans
+#   - broadband     : generic AT&T data (default used here)
 modem_present() { command -v mmcli >/dev/null 2>&1 && mmcli -L 2>/dev/null | grep -q Modem; }
+
+# The SIM must be present and the modem registered to a tower before a PDP
+# context can even be attempted. This is the fastest way to distinguish
+# "no SIM" / "no coverage" from "wrong APN".
+modem_registration_state() {
+  mmcli -m any 2>/dev/null | awk -F: '/state/ {gsub(/^[ \t]+|[ \t]+$/,""); print tolower($2); exit}'
+}
+
+att_default_apn() {
+  local configured; configured=$(pj cellular_apn)
+  [ -n "$configured" ] && echo "$configured" || echo "broadband"
+}
 
 try_cellular() {
   modem_present || return 1
-  local apn user pass name
-  apn=$(pj cellular_apn)
-  [ -n "$apn" ] || { nm_log "Modem present but no APN was set at the bench."; \
-                     echo cellular_no_apn > "$STATE/last_block_reason"; return 1; }
+  local apn user pass name reg
+  apn=$(att_default_apn)
   user=$(pj cellular_user); pass=$(pj cellular_pass); name=qconnect-cellular
+
+  reg=$(modem_registration_state)
+  case "$reg" in
+    *locked*)   nm_log "SIM is PIN-locked."; echo cellular_sim_locked > "$STATE/last_block_reason"; return 1 ;;
+    *failed*)   nm_log "Modem failed to register to a tower."; echo cellular_no_tower > "$STATE/last_block_reason"; return 1 ;;
+    *disabled*) nm_log "SIM/RF disabled."; echo cellular_sim_disabled > "$STATE/last_block_reason"; return 1 ;;
+  esac
+
   nm_log "Modem detected; bringing up cellular (APN $apn)."
   if ! nmcli -t -f NAME connection show 2>/dev/null | grep -Fxq "$name"; then
     local args=(connection add type gsm ifname '*' con-name "$name" apn "$apn"
                 connection.autoconnect yes
                 connection.autoconnect-retries 0
-                connection.autoconnect-priority 50)
+                connection.autoconnect-priority 50
+                gsm.number '*99#'
+                gsm.home-only no
+                ipv4.method auto
+                ipv6.method auto
+                gsm.network-type prefer-4g-or-3g)
     [ -n "$user" ] && args+=(gsm.username "$user")
     [ -n "$pass" ] && args+=(gsm.password "$pass")
     nmcli "${args[@]}" >/dev/null 2>&1
