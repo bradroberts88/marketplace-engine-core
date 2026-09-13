@@ -30,6 +30,8 @@ NET_STATE = os.path.join(STATE_DIR, "net-state.json")
 # dealer LAN whenever the two profiles overlapped.
 BIND_ADDR = os.environ.get("QCONNECT_PORTAL_BIND", "10.42.0.1")
 
+EVENTS_LOG = os.path.join(STATE_DIR, "net-events.log")
+
 REASONS = {
     "ok": "Connected.",
     "wrong_password": "That password was not accepted. Check it and try again.",
@@ -46,6 +48,11 @@ REASONS = {
     "cellular_sim_disabled": "The SIM or modem RF is disabled. Check the SIM seating.",
     "cellular_no_tower": "The modem cannot see a tower. Check the antenna and coverage.",
     "cellular_failed": "The modem could not connect. Check the SIM, signal and APN.",
+    "netmanager_unavailable": (
+        "The network service on this box is not running, so it cannot join anything. "
+        "Press Retry; if it keeps happening the card needs re-flashing."
+    ),
+    "no_wifi_radio": "This box has no working Wi-Fi radio. Use a cable or a mobile modem.",
     "no_path": "No cable, no known Wi-Fi, no modem.",
 }
 

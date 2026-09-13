@@ -43,6 +43,7 @@ DEVICE_ID=$(jget device_id)
 DEALER_ID=$(jget dealer_id)
 DEVICE_TOKEN=$(jget device_token)
 TS_KEY=$(jget tailscale_authkey)
+ENROL_TICKET=$(jget enrolment_ticket)
 SB_URL=$(jget supabase_url); SB_URL=${SB_URL%/}
 SB_KEY=$(jget supabase_anon_key)
 
