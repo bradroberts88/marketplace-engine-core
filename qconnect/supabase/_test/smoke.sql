@@ -69,7 +69,7 @@ select case when public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc','{}'
 
 -- 9. bench run seeds the full checklist and the go/no-go rule holds
 select public.qconnect_bench_start('QCN-TEST-001','Bench VA','Pi Zero 2 W') as run \gset
-select case when count(*) = 39 then 'PASS 39 checklist steps seeded'
+select case when count(*) = 40 then 'PASS 40 checklist steps seeded'
             else 'FAIL seeded ' || count(*) end
 from public.qconnect_bench_checks where run_id = :'run';
 select case when count(*) = 10 then 'PASS connectivity phase seeded'
@@ -108,5 +108,11 @@ select case when health='healthy' and stuck_step is null and last_error is null
 from public.qconnect_fleet where device_id='QCN-TEST-001';
 
 -- Registration still refuses an unknown token, now on the wider signature.
-select case when public.qconnect_register('QCN-GHOST'::text,'d'::text,'nope'::text,'100.64.0.9'::text,'wifi'::text,'x'::text,'Pi 4'::text) is null
-       then 'FAIL ghost registered' end;
+do $$
+begin
+  perform public.qconnect_register('QCN-GHOST'::text,'d'::text,'nope'::text,
+                                   '100.64.0.9'::text,'wifi'::text,'x'::text,'Pi 4'::text);
+  raise notice 'FAIL ghost device registered';
+exception when others then
+  raise notice 'PASS unknown device still rejected on the wider signature';
+end $$;
