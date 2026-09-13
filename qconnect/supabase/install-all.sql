@@ -76,7 +76,8 @@ $$;
 grant execute on function public.qconnect_heartbeat to anon;
 
 -- FINDING 1 FIX: offline view locked to logged-in dashboard users only.
-create or replace view public.qconnect_offline as
+drop view if exists public.qconnect_offline;
+create view public.qconnect_offline as
   select device_id, dealer_id, tailscale_ip, last_seen_at
   from qconnect_devices
   where enabled and (last_seen_at is null or last_seen_at < now() - interval '15 minutes');
@@ -264,7 +265,8 @@ grant execute on function public.qconnect_set_enabled(text, boolean) to authenti
 -- --------------------------------------------- token-free dashboard fleet view
 -- Views run with owner rights and bypass RLS, so the row filter lives INSIDE
 -- the view and anon is revoked (same reasoning as Finding 1).
-create or replace view public.qconnect_fleet as
+drop view if exists public.qconnect_fleet;
+create view public.qconnect_fleet as
   select device_id,
          dealer_id,
          tailscale_ip,
@@ -281,7 +283,8 @@ revoke all on public.qconnect_fleet from anon;
 grant select on public.qconnect_fleet to authenticated;
 
 -- Keep the offline view consistent with the same scoping.
-create or replace view public.qconnect_offline as
+drop view if exists public.qconnect_offline;
+create view public.qconnect_offline as
   select device_id, dealer_id, tailscale_ip, last_seen_at
   from public.qconnect_devices
   where enabled
