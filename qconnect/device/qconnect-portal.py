@@ -289,6 +289,20 @@ class Portal(BaseHTTPRequestHandler):
         error = ""
         if result and result != "ok":
             error = f'<div class="err">{esc(REASONS.get(result, result))}</div>'
+
+        nm_ok, nm_detail = netmanager_state()
+        nmwarn = ""
+        if not nm_ok:
+            nmwarn = (f'<div class="err">{esc(REASONS["netmanager_unavailable"])}'
+                      f'<br><small>Service state: {esc(nm_detail)}</small></div>')
+
+        rows = recent_events()
+        history = ""
+        if rows:
+            items = "".join(
+                f"<div><span>{esc(when)}</span><b>{esc(what)}</b></div>" for when, what in rows)
+            history = f'<div class="status">{items}</div>'
+
         options = "".join(f"<option>{esc(s)}</option>" for s in scan_ssids())
         if not options:
             options = "<option value=''>(no scan available - type the name below)</option>"
@@ -299,9 +313,10 @@ class Portal(BaseHTTPRequestHandler):
         )
         apn_manual = "" if current_apn in ATT_APN_OPTIONS else current_apn
         self._send(PAGE.format(body=FORM.format(
-            dev=esc(device_id()), options=options, error=error,
+            dev=esc(device_id()), options=options, error=error, nmwarn=nmwarn,
             eth=esc(ethernet_state()), modem=esc(modem_state()),
-            reason=esc(message), apn_options=apn_options,
+            nmstate=esc("running" if nm_ok else nm_detail),
+            history=history, reason=esc(message), apn_options=apn_options,
             apn_manual=esc(apn_manual))), code)
 
     def do_GET(self):
