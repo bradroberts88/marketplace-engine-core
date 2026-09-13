@@ -359,3 +359,11 @@ if __name__ == "__main__":
           "Pi connection defect register",
           "Every connection defect found, ranked, with its current status",
           "1.0", date)
+    build("docs/PI-OWNERS-GUIDE.md", "docs/pdf/Pi-Owners-Guide.pdf",
+          "Getting started with your Pi",
+          "A plain-English owner's guide — no technical knowledge needed",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi"
+          % date,
+          footer_note="Owner's guide")
