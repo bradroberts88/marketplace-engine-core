@@ -349,3 +349,7 @@ if __name__ == "__main__":
     build("docs/SOFTWARE-DESIGN.md", "docs/pdf/Marketplace-Engine-Software-Design.pdf",
           "Software design document", "Module structure, interfaces and testing strategy",
           "1.0", date)
+    build("docs/PI-CONNECT-DEFECT-REGISTER.md", "docs/pdf/Pi-Connect-Defect-Register.pdf",
+          "Pi connection defect register",
+          "Every connection defect found, ranked, with its current status",
+          "1.0", date)
