@@ -250,16 +250,27 @@ language sql security definer set search_path = public as $$
 $$;
 revoke execute on function public.qconnect_mark_alert_emailed(uuid[]) from anon, authenticated, public;
 
+-- The scheduler wakes this every 30 minutes, but the fleet only gets
+-- attention during business hours: 07:00-20:00 Mountain time, every day.
+-- Checking the hour here (not in the cron pattern) keeps the window correct
+-- through daylight-saving changes, since America/Denver handles DST itself.
 create or replace function public.qconnect_run_workers()
 returns jsonb
-language sql security definer set search_path = public as $$
-  select jsonb_build_object(
+language plpgsql security definer set search_path = public as $$
+declare v_hour integer;
+begin
+  v_hour := extract(hour from now() at time zone 'America/Denver');
+  if v_hour < 7 or v_hour >= 20 then
+    return jsonb_build_object('skipped', 'outside 07:00-20:00 America/Denver', 'at', now());
+  end if;
+  return jsonb_build_object(
     'steps',    public.qconnect_worker_steps(),
     'silence',  public.qconnect_worker_silence(),
     'commands', public.qconnect_worker_commands(),
     'updates',  public.qconnect_worker_updates(),
     'at',       now()
   );
+end;
 $$;
 revoke execute on function public.qconnect_run_workers() from anon, authenticated, public;
 
@@ -334,7 +345,7 @@ do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.unschedule(jobid) from cron.job where jobname = 'qconnect-workers';
-    perform cron.schedule('qconnect-workers', '* * * * *', 'select public.qconnect_run_workers()');
+    perform cron.schedule('qconnect-workers', '*/30 * * * *', 'select public.qconnect_run_workers()');
   end if;
 end;
 $$;
