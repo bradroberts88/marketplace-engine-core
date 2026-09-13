@@ -120,14 +120,19 @@ begin
   if n <> 1 then raise exception 'expected one open silence alert, got %', n; end if;
 end $$;
 
--- Overdue steps raise an alert.
+-- A card that never came up: its required steps go past the deadline and alert.
+select public.qconnect_preregister('QCN-OPS-3', 'DLR-1', 'tok-ops-3');
 update qconnect_run_steps s set due_at = now() - interval '1 hour'
-  from qconnect_runs r where r.id = s.run_id and r.device_id = 'QCN-OPS-2' and s.status = 'pending';
+  from qconnect_runs r where r.id = s.run_id and r.device_id = 'QCN-OPS-3' and s.status = 'pending';
 select public.qconnect_worker_steps();
 do $$
 begin
-  if not exists (select 1 from qconnect_alerts where device_id = 'QCN-OPS-2' and kind = 'step_overdue')
+  if not exists (select 1 from qconnect_alerts where device_id = 'QCN-OPS-3' and kind = 'step_overdue')
   then raise exception 'an overdue step did not alert'; end if;
+  -- The optional "first listing" step must NOT raise anything.
+  if exists (select 1 from qconnect_run_steps s join qconnect_runs r on r.id = s.run_id
+              where r.device_id = 'QCN-OPS-3' and s.step = 'first_listing' and s.status = 'overdue')
+  then raise exception 'an optional step was marked overdue'; end if;
 end $$;
 
 -- Releases: a rollout aimed at one dealership reaches its boxes only.
