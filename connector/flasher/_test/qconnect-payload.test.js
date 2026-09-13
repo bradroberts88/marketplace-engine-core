@@ -76,8 +76,13 @@ test('awkward passwords and quotes survive the write', () => {
   const steps = qconnectSteps(good).join('\n');
   // The value is base64 inside the script, never interpolated raw.
   assert.ok(!steps.includes('p@ss "word" $1'), 'the password must not appear unescaped');
-  const b64 = Buffer.from('p@ss "word" $1', 'utf8').toString('base64');
-  assert.ok(steps.replace(/\n/g, '').includes(b64.slice(0, 12)), 'the password must be carried as base64');
+  // Decode the provision.json the card would receive and check it round-trips.
+  const blocks = steps.split("cat > /tmp/qc.b64 <<'QC_B64_EOF'\n").slice(1);
+  const decoded = blocks
+    .map((b) => Buffer.from(b.split('\nQC_B64_EOF')[0].replace(/\n/g, ''), 'base64').toString('utf8'))
+    .filter((s) => s.trim().startsWith('{'));
+  assert.equal(decoded.length, 1, 'exactly one provision.json');
+  assert.equal(JSON.parse(decoded[0]).wifi_pass, 'p@ss "word" $1');
 });
 
 test('the card is handed to the first-run installer', () => {
