@@ -1,5 +1,9 @@
 # QConnect bench runbook — one card, start to finish
 
+> Received a box rather than building one? Start with the plain-English
+> [owner's guide](../../docs/PI-OWNERS-GUIDE.md) instead — this runbook is for
+> the bench.
+
 Print this. Do one card at a time. Every step has an expected result; if you
 don't see it, stop and follow the "if it doesn't match" line before moving on.
 Tick each step on the Bench page in the fleet app as you go.
