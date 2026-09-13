@@ -302,23 +302,26 @@ class Doc(BaseDocTemplate):
         canv.restoreState()
 
 
-def build(src, out, title, subtitle, version, date):
+def build(src, out, title, subtitle, version, date,
+          brand="Marketplace Engine (AutoPost)", cover_brand="Marketplace&nbsp;Engine",
+          cover_meta=None, footer_note="Internal — confidential"):
     md = open(src, encoding="utf-8").read()
     md = re.sub(r"^#\s+.*\n", "", md, count=1)
-    doc = Doc(out, title, subtitle)
+    doc = Doc(out, title, subtitle, brand=brand, footer_note=footer_note)
     width = doc.width
     sections = []
     body = parse(md, width, sections)
 
     story = []
     story.append(Spacer(1, 78 * mm))
-    story.append(Paragraph("Marketplace&nbsp;Engine", S["coverSub"]))
+    story.append(Paragraph(cover_brand, S["coverSub"]))
     story.append(Spacer(1, 6))
     story.append(Paragraph(title, S["coverTitle"]))
     story.append(Spacer(1, 10))
     story.append(Paragraph(subtitle, S["coverSub"]))
     story.append(Spacer(1, 26))
     story.append(Paragraph(
+        cover_meta if cover_meta is not None else
         "Version %s &nbsp;·&nbsp; %s<br/>Repository: bradroberts88/marketplace-engine-core<br/>"
         "Product codename: AutoPost" % (version, date), S["coverMeta"]))
     story.append(NextPageTemplate("body"))
