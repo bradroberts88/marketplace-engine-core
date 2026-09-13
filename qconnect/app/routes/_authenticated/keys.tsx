@@ -115,8 +115,9 @@ function KeysPage() {
                   {stateBadge(key)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {key.dealer_id ?? "No dealership"} · Written {formatUsDate(key.tailscale_key_issued_at)} ·
-                  Runs out {formatUsDate(key.tailscale_key_expires_at)} ·
+                  {key.dealer_id ?? "No dealership"} · Written{" "}
+                  {formatUsDate(key.tailscale_key_issued_at)} · Runs out{" "}
+                  {formatUsDate(key.tailscale_key_expires_at)} ·
                   {key.tailscale_key_id ? ` Key ${key.tailscale_key_id}` : " Key id not recorded"}
                 </p>
               </div>

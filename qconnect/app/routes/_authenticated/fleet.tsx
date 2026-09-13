@@ -4,12 +4,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  listAudit,
-  listFleet,
-  setDeviceEnabled,
-  type FleetDevice,
-} from "@/lib/qconnect.functions";
+import { listAudit, listFleet, setDeviceEnabled, type FleetDevice } from "@/lib/qconnect.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -154,7 +149,13 @@ function FleetPage() {
                     ) : null}
                   </dd>
                   <dt className="text-muted-foreground">Signal</dt>
-                  <dd className={device.link_quality !== null && device.link_quality < 30 ? "text-destructive" : ""}>
+                  <dd
+                    className={
+                      device.link_quality !== null && device.link_quality < 30
+                        ? "text-destructive"
+                        : ""
+                    }
+                  >
                     {device.link_quality !== null ? `${device.link_quality} %` : "—"}
                   </dd>
                   <dt className="text-muted-foreground">Last check-in</dt>

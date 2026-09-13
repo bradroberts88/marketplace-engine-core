@@ -55,8 +55,14 @@ function ReleasesPage() {
   const start = useServerFn(startRollout);
   const stop = useServerFn(stopRollout);
 
-  const releases = useQuery({ queryKey: ["qconnect", "releases"], queryFn: () => fetchReleases({}) });
-  const rollouts = useQuery({ queryKey: ["qconnect", "rollouts"], queryFn: () => fetchRollouts({}) });
+  const releases = useQuery({
+    queryKey: ["qconnect", "releases"],
+    queryFn: () => fetchReleases({}),
+  });
+  const rollouts = useQuery({
+    queryKey: ["qconnect", "rollouts"],
+    queryFn: () => fetchRollouts({}),
+  });
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["qconnect", "releases"] });
