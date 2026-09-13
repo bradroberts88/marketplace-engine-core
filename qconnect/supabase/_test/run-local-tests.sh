@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs 01-04 against a throwaway local Postgres (twice each, to prove they are
+# Runs every migration against a throwaway local Postgres (twice each, to prove they are
 # idempotent), then a smoke test covering token hashing, registration refusal,
 # the admin-only kill switch, view scoping and the bench go/no-go rule.
 #
@@ -17,7 +17,8 @@ sleep 1
 createdb -h $D -U pg qc
 psql -h $D -U pg -q -d qc -f $HERE/prelude.sql
 for f in 01-schema-hardened 02-admin-killswitch-audit 03-token-hashing 04-bench-tests 05-connectivity \
-         06-commands-updates 07-onboarding-steps 08-alerts-workers; do
+         06-commands-updates 07-onboarding-steps 08-alerts-workers 09-enrolment-batches-net \
+         10-tailscale-keys; do
   echo "== $f"
   psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $SQL_DIR/$f.sql && echo "   OK"
   echo "== $f (re-run, idempotency)"
