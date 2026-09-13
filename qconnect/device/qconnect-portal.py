@@ -79,7 +79,7 @@ def read_text(path):
 
 
 def device_id():
-    return read_json(os.path.join(QCONNECT, "etc", "provision.json")).get("device_id", "QConnect")
+    return provision_json().get("device_id", "QConnect")
 
 
 def scan_ssids():
@@ -129,7 +129,17 @@ def ethernet_state():
 def modem_state():
     try:
         out = subprocess.run(["mmcli", "-L"], capture_output=True, text=True, timeout=8).stdout
-        return "modem fitted" if "Modem" in out else "no modem"
+        if "Modem" not in out:
+            return "no modem"
+        reg = subprocess.run(["mmcli", "-m", "any"], capture_output=True, text=True, timeout=8).stdout
+        state = ""
+        for line in reg.splitlines():
+            if "state:" in line.lower():
+                state = line.split(":", 1)[-1].strip().lower()
+                break
+        if state in ("registered", "connected"):
+            return f"modem on network ({state})"
+        return f"modem fitted ({state or 'searching'})"
     except Exception:
         return "no modem"
 
