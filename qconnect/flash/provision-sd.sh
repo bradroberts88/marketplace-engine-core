@@ -22,6 +22,9 @@
 #     --wifi-ssid "DealerGuest" --wifi-pass "guestpass123" [--wifi-hidden]
 #     --hotspot-ssid "Sales iPhone" --hotspot-pass "..."   # last-resort fallback
 #     --cellular-apn broadband [--cellular-user u --cellular-pass p]
+#                            AT&T default: broadband
+#                            AT&T IoT/M2M:  m2m.com.attz
+#                            AT&T MVNO:     att.mvno
 #     --wifi-country US
 #
 # With no Wi-Fi and no cable the box boots straight into AP fallback mode
