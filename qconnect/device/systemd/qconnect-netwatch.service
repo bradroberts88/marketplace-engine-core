@@ -1,0 +1,14 @@
+[Unit]
+Description=QConnect connectivity watchdog (falls back between cable, Wi-Fi and cellular)
+After=NetworkManager.service qconnect-setup.service
+Wants=NetworkManager.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/opt/qconnect/qconnect-netmanager.sh watch
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

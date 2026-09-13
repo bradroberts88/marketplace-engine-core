@@ -1,6 +1,9 @@
 [Unit]
 Description=QConnect heartbeat
-ConditionPathExists=/opt/qconnect/state/provisioned
+# Deliberately NOT gated on state/provisioned: a box that is online but stuck on
+# Tailscale or registration must still report itself, otherwise it is
+# indistinguishable from a dead box.
+ConditionPathExists=/opt/qconnect/etc/provision.json
 
 [Service]
 Type=oneshot
