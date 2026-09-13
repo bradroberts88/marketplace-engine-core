@@ -28,6 +28,44 @@ export const Route = createFileRoute("/_authenticated/fleet")({
 const minutesSince = (iso: string | null) =>
   iso === null ? null : Math.round((Date.now() - new Date(iso).getTime()) / 60000);
 
+// How the box reached the internet, in words a salesperson can repeat on the phone.
+const pathLabel: Record<string, string> = {
+  ethernet: "Network cable",
+  wifi: "Wi-Fi",
+  cellular: "Mobile data",
+  hotspot: "Setup hotspot (waiting for details)",
+  none: "No connection",
+};
+
+// The device reports machine-readable reasons; the dashboard is where they
+// become an instruction rather than a riddle.
+const errorLabel: Record<string, string> = {
+  wrong_password: "Wi-Fi password is wrong",
+  ssid_not_in_range: "That Wi-Fi network is not in range",
+  ssid_not_in_range_2g_radio: "This box only sees 2.4 GHz networks; the Wi-Fi is 5 GHz",
+  joined_but_no_internet: "Joined the Wi-Fi but there is no internet",
+  captive_portal: "The network shows a sign-in page the box cannot complete",
+  cellular_no_apn: "A modem is fitted but no APN was set",
+  cellular_failed: "The mobile modem could not connect",
+  no_path: "No cable, Wi-Fi or mobile data available",
+};
+
+const healthLabel: Record<string, string> = {
+  healthy: "Healthy",
+  weak_signal: "Weak signal",
+  offline: "Offline",
+  disabled: "Disabled",
+  never_checked_in: "Never checked in",
+  stuck_network: "Cannot get online",
+  stuck_tailscale: "Online, cannot join the private network",
+  stuck_register: "Online, not registered",
+};
+
+const describe = (device: FleetDevice) => {
+  const detail = device.last_error ? errorLabel[device.last_error] : undefined;
+  return detail ?? healthLabel[device.health] ?? device.health;
+};
+
 function FleetPage() {
   const queryClient = useQueryClient();
   const fetchFleet = useServerFn(listFleet);
@@ -88,9 +126,35 @@ function FleetPage() {
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
+                {device.health !== "healthy" ? (
+                  <p
+                    className={
+                      device.health === "disabled"
+                        ? "text-muted-foreground"
+                        : "text-destructive font-medium"
+                    }
+                  >
+                    {describe(device)}
+                  </p>
+                ) : null}
                 <dl className="grid grid-cols-2 gap-y-1">
+                  <dt className="text-muted-foreground">Connected by</dt>
+                  <dd>
+                    {device.connection_path
+                      ? (pathLabel[device.connection_path] ?? device.connection_path)
+                      : "—"}
+                    {device.connection_detail ? (
+                      <span className="text-muted-foreground"> · {device.connection_detail}</span>
+                    ) : null}
+                  </dd>
+                  <dt className="text-muted-foreground">Signal</dt>
+                  <dd className={device.link_quality !== null && device.link_quality < 30 ? "text-destructive" : ""}>
+                    {device.link_quality !== null ? `${device.link_quality} %` : "—"}
+                  </dd>
                   <dt className="text-muted-foreground">Last check-in</dt>
                   <dd>{age === null ? "never" : `${age} min ago`}</dd>
+                  <dt className="text-muted-foreground">Model</dt>
+                  <dd>{device.pi_model ?? "—"}</dd>
                   <dt className="text-muted-foreground">Tailscale</dt>
                   <dd className="font-mono text-xs">{device.tailscale_ip ?? "—"}</dd>
                   <dt className="text-muted-foreground">Temperature</dt>
