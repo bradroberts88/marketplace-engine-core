@@ -241,10 +241,17 @@ class Portal(BaseHTTPRequestHandler):
         options = "".join(f"<option>{esc(s)}</option>" for s in scan_ssids())
         if not options:
             options = "<option value=''>(no scan available - type the name below)</option>"
+        current_apn = current_cellular_apn()
+        apn_options = "".join(
+            f"<option value='{esc(a)}'{' selected' if a == current_apn else ''}>{esc(a)}</option>"
+            for a in ATT_APN_OPTIONS
+        )
+        apn_manual = "" if current_apn in ATT_APN_OPTIONS else current_apn
         self._send(PAGE.format(body=FORM.format(
             dev=esc(device_id()), options=options, error=error,
             eth=esc(ethernet_state()), modem=esc(modem_state()),
-            reason=esc(message))), code)
+            reason=esc(message), apn_options=apn_options,
+            apn_manual=esc(apn_manual))), code)
 
     def do_GET(self):
         # OS captive-portal probes: answer with a redirect so the phone
