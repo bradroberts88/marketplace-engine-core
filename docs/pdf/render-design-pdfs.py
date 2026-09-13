@@ -260,11 +260,14 @@ def parse(md, width, sections):
 
 
 class Doc(BaseDocTemplate):
-    def __init__(self, path, title, subtitle, **kw):
+    def __init__(self, path, title, subtitle, brand="Marketplace Engine (AutoPost)",
+                 footer_note="Internal — confidential", **kw):
         BaseDocTemplate.__init__(self, path, pagesize=A4, title=title,
                                  author="Marketplace Engine", **kw)
         self.docTitle = title
         self.subtitle = subtitle
+        self.brand = brand
+        self.footer_note = footer_note
         w, h = A4
         m = 20 * mm
         frame = Frame(m, 20 * mm, w - 2 * m, h - 20 * mm - 26 * mm, id="body")
@@ -289,7 +292,7 @@ class Doc(BaseDocTemplate):
         canv.setFont("DJ", 7.5)
         canv.setFillColor(MUTED)
         canv.drawString(20 * mm, h - 14 * mm, self.docTitle)
-        canv.drawRightString(w - 20 * mm, h - 14 * mm, "Marketplace Engine (AutoPost)")
+        canv.drawRightString(w - 20 * mm, h - 14 * mm, self.brand)
         canv.setStrokeColor(RULE)
         canv.setLineWidth(0.5)
         canv.line(20 * mm, h - 16 * mm, w - 20 * mm, h - 16 * mm)
