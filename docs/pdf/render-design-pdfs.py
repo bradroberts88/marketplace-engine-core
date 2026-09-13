@@ -364,6 +364,25 @@ if __name__ == "__main__":
           "A plain-English owner's guide — no technical knowledge needed",
           "1.0", date,
           brand="QConnect", cover_brand="QConnect",
-          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi"
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
           % date,
-          footer_note="Owner's guide")
+          footer_note="Owner's guide — QCAI Support 1-855-782-6824")
+    build("docs/PI-OWNERS-HANDOUT.md", "docs/pdf/Pi-Owners-Handout.pdf",
+          "Your Pi — the one-page version",
+          "Plug in, get online, who to call",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
+          % date,
+          footer_note="QCAI Support 1-855-782-6824",
+          contents=False)
+    build("docs/PI-BATCH-TRACKER.md", "docs/pdf/Pi-Batch-Tracker.pdf",
+          "Pi batch tracker",
+          "Wireless, cable and AT&T cellular — one row per card",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Print and keep on the bench" % date,
+          footer_note="Bench tracker",
+          contents=False)
