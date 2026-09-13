@@ -16,18 +16,28 @@ qconnect/
   supabase/03-token-hashing.sql        store only a SHA-256 fingerprint of each device token
   supabase/04-bench-tests.sql          bench runs + the 7-phase checklist, with the go/no-go rule
   supabase/05-connectivity.sql         connection path / fault columns, fleet health verdict, bench phase 8
+  supabase/06-commands-updates.sql     two-way instruction queue, signed releases and rollouts
+  supabase/07-onboarding-steps.sql     strict per-card checklist with deadlines
+  supabase/08-alerts-workers.sql       alerts plus the five once-a-minute background workers
   app/lib/qconnect.functions.ts        -> src/lib/qconnect.functions.ts
+  app/lib/qconnect-ops.functions.ts    -> src/lib/qconnect-ops.functions.ts
+  app/lib/email-templates/qconnect-alert.tsx  -> src/lib/email-templates/
+  app/routes/_authenticated/alerts.tsx    -> src/routes/_authenticated/alerts.tsx
+  app/routes/_authenticated/releases.tsx  -> src/routes/_authenticated/releases.tsx
+  app/routes/api/public/qconnect-alert-emails.ts -> src/routes/api/public/
+  release/make-release.sh              builds and signs an agent bundle
   app/routes/_authenticated/fleet.tsx  -> src/routes/_authenticated/fleet.tsx
   app/routes/_authenticated/bench.tsx  -> src/routes/_authenticated/bench.tsx
   device/qconnect-netmanager.sh        cable -> Wi-Fi -> cellular -> hotspot, with real-internet checks
   device/, boot-payload/, flash/       the rest of the card-side scripts
   docs/CONNECTIVITY.md                 how a box gets online, and what to do when it does not
+  docs/REMOTE-OPS.md                   remote repair, step tracking, self-update and alerts
   docs/                                the security review and bench checklist, as markdown
 ```
 
 ## Order of operations
 
-1. Run `supabase/01` … `05` in the SQL editor, in that order. Each file is idempotent and safe to
+1. Run `supabase/01` … `08` in the SQL editor, in that order. Each file is idempotent and safe to
    re-run.
 2. Make yourself an admin (the on/off switch and the bench screens require it):
    ```sql
@@ -37,7 +47,9 @@ qconnect/
    ```
    Sign out and back in so the new token carries the claim. For dealership staff, set
    `{"dealer_id":"their-dealer-id"}` instead — they then see only their own boxes.
-3. Copy the three app files into `src/` and add links to `/fleet` and `/bench` in your navigation.
+3. Copy the app files into `src/` and add links to `/fleet`, `/bench`, `/alerts` and `/releases` in
+   your navigation. For alert emails, set `QCONNECT_ALERT_EMAIL` and point a scheduler at
+   `/api/public/qconnect-alert-emails` every minute — see `docs/REMOTE-OPS.md`.
 4. Flash a card with `flash/provision-sd.sh` (it pre-registers the device itself now) and work
    through the bench screen. See `docs/CONNECTIVITY.md` for the connection options.
 
@@ -64,8 +76,9 @@ rotate the batch key when a device is reported stolen.
 
 ## Verified
 
-`supabase/_test/run-local-tests.sh` runs all five files against a throwaway local Postgres — twice
-each, to prove they can be re-run safely — then a 17-check smoke test. Last run: all 17 passed on 13/09/2026.
+`supabase/_test/run-local-tests.sh` runs all eight files against a throwaway local Postgres — twice
+each, to prove they can be re-run safely — then two smoke tests. Last run: everything passed on
+13/09/2026.
 
 - token stored only as a fingerprint, plaintext column empty
 - wrong token rejected; unknown device rejected
@@ -88,3 +101,12 @@ have not been run on physical hardware in this environment.
 
 No card has been through the bench test — the checklist is recorded, not passed. Phases 1, 2 and 4
 clean, zero corruption in phase 3, and a clean burn-in are the gate before batch production.
+- a pre-registered card opens a full checklist; reporting a later step back-fills the earlier ones
+- an instruction can be issued by an admin, collected by the box and acknowledged; unknown
+  instructions are refused and a disabled box is handed no work at all
+- a box silent for an hour raises exactly one alert no matter how often the worker runs, and its next
+  check-in clears it
+- required steps past their deadline alert; the optional "first listing" step does not
+- a rollout aimed at one dealership reaches its boxes, and stopping it withdraws the offer
+- an update that never reports healthy is failed and alerted, and each alert is queued for exactly
+  one email

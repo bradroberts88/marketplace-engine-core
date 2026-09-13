@@ -84,6 +84,10 @@ STAMP=$(date '+%F %T')
 if [ "$CODE" = "200" ] || [ "$CODE" = "204" ]; then
   echo "[$STAMP] ok ($CODE)" >> "$LOG"
   rm -f "$STATE/heartbeat_error"
+  # The check-in is also our chance to collect instructions from the server and
+  # to finish (or roll back) a software update. Both are safe to run every time.
+  [ -x "$QCONNECT/qconnect-command-exec.sh" ] && "$QCONNECT/qconnect-command-exec.sh" >/dev/null 2>&1
+  [ -x "$QCONNECT/qconnect-agent-update.sh" ] && "$QCONNECT/qconnect-agent-update.sh" >/dev/null 2>&1
 else
   BODY=$(head -c 300 /tmp/qconnect-hb.out)
   echo "[$STAMP] heartbeat rejected: HTTP $CODE $BODY" >> "$LOG"

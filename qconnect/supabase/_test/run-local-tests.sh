@@ -16,7 +16,8 @@ pg_ctl -D $D/data -o "-k $D -h ''" -l $D/log start > /dev/null
 sleep 1
 createdb -h $D -U pg qc
 psql -h $D -U pg -q -d qc -f $HERE/prelude.sql
-for f in 01-schema-hardened 02-admin-killswitch-audit 03-token-hashing 04-bench-tests 05-connectivity; do
+for f in 01-schema-hardened 02-admin-killswitch-audit 03-token-hashing 04-bench-tests 05-connectivity \
+         06-commands-updates 07-onboarding-steps 08-alerts-workers; do
   echo "== $f"
   psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $SQL_DIR/$f.sql && echo "   OK"
   echo "== $f (re-run, idempotency)"
@@ -24,4 +25,6 @@ for f in 01-schema-hardened 02-admin-killswitch-audit 03-token-hashing 04-bench-
 done
 echo "== smoke test"
 psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $HERE/smoke.sql
+echo "== smoke test (remote ops)"
+psql -h $D -U pg -d qc -v ON_ERROR_STOP=1 -q -f $HERE/smoke-ops.sql
 pg_ctl -D $D/data stop > /dev/null
