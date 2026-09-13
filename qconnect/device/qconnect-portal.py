@@ -269,10 +269,25 @@ class Portal(BaseHTTPRequestHandler):
         ssid = (data.get("ssid_manual", [""])[0] or data.get("ssid", [""])[0]).strip()
         password = data.get("pass", [""])[0]
         hidden = "yes" if data.get("hidden") else "no"
+        apn = (data.get("cellular_apn_manual", [""])[0] or data.get("cellular_apn", [""])[0]).strip()
         if not ssid:
             self._form(400)
             return
         os.makedirs(STATE_DIR, exist_ok=True)
+        # Persist the APN back to provision.json so cellular works on the next
+        # connect_any pass without a reflash. AT&T default is "broadband".
+        if apn:
+            prov_path = os.path.join(QCONNECT, "etc", "provision.json")
+            try:
+                prov = read_json(prov_path)
+                if prov.get("cellular_apn") != apn:
+                    prov["cellular_apn"] = apn
+                    tmp = prov_path + ".tmp"
+                    with open(tmp, "w") as f:
+                        json.dump(prov, f, indent=2)
+                    os.replace(tmp, prov_path)
+            except OSError:
+                pass
         # Clear the old verdict so the page does not show a stale failure.
         try:
             os.remove(RESULT_FILE)
