@@ -76,16 +76,45 @@ grant all on public.qconnect_audit to service_role;
 
 -- Append-only from the app's point of view: no insert/update/delete policies.
 drop policy if exists "qconnect_audit_read" on public.qconnect_audit;
-create policy "qconnect_audit_read" on public.qconnect_audit
-  for select to authenticated
-  using (
-    public.qconnect_is_admin()
-    or exists (
-      select 1 from public.qconnect_devices d
-      where d.device_id = qconnect_audit.device_id
-        and d.dealer_id = public.qconnect_dealer_id()
-    )
-  );
+-- Fleet Manager adds group scoping: when qconnect_dealer_groups exists, group
+-- admins read their group's rows; otherwise the plain admin/dealer rule applies.
+do $$
+begin
+  if to_regclass('public.qconnect_dealer_groups') is not null then
+    execute $p$
+      create policy "qconnect_audit_read" on public.qconnect_audit
+        for select to authenticated
+        using (
+          public.qconnect_is_admin()
+          or (
+            coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'group_admin'
+            and dealer_id in (
+              select g.dealer_id from public.qconnect_dealer_groups g
+               where g.group_id = auth.jwt() -> 'app_metadata' ->> 'group_id'
+            )
+          )
+          or exists (
+            select 1 from public.qconnect_devices d
+             where d.device_id = qconnect_audit.device_id
+               and d.dealer_id = public.qconnect_dealer_id()
+          )
+        )
+    $p$;
+  else
+    execute $p$
+      create policy "qconnect_audit_read" on public.qconnect_audit
+        for select to authenticated
+        using (
+          public.qconnect_is_admin()
+          or exists (
+            select 1 from public.qconnect_devices d
+             where d.device_id = qconnect_audit.device_id
+               and d.dealer_id = public.qconnect_dealer_id()
+          )
+        )
+    $p$;
+  end if;
+end $$;
 
 -- --------------------------------------------------------------- kill switch
 create or replace function public.qconnect_set_enabled(
