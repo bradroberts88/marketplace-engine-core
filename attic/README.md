@@ -19,15 +19,15 @@ customer. It is kept only so a decision can be reversed with a single move.
 
 ### `autopost-pi/` — the old AutoPost card recipe
 
-Cards used to be provisioned two different ways, and that is the main reason
-identical-looking cards behaved differently in the field. The QConnect recipe
-(`qconnect/`) is now the only one. These files are the old one.
+Card onboarding used to have two front doors: a Bluetooth channel and a Wi-Fi
+setup page. Two doors meant two things to keep working, and the Bluetooth one
+quietly did nothing on any card missing its packages or with the radio switched
+off in `config.txt` - a card that looked healthy and never connected. The
+QConnect captive portal (`qconnect/device/qconnect-portal.py`) is now the only
+onboarding door. These are the retired Bluetooth files.
 
 | File | Was | Replaced by |
 | --- | --- | --- |
-| `autopost-claim.service` | claimed the box against the hub using a one-time code from the boot partition | `qconnect-setup.service` — self-registration with a single-use enrolment ticket |
-| `autopost-tailscale.service` | joined the tailnet using a shared, reusable fleet key | per-card single-use key minted at card-writing time (`qconnect/flash/tailscale-keys.sh`) |
-| `autopost-captive-dnsmasq.conf` | captive-portal DNS for the old rescue AP | wildcard DNS written by `qconnect-firstrun.sh` |
 | `autopost-ble-setup.py` | Bluetooth onboarding channel | `qconnect-portal.py` — Wi-Fi captive portal on the setup hotspot |
 | `autopost-ble-setup.service` | ran the above | as above |
 | `ble-setup-page.html` | its web page | `qconnect-portal.py` serves its own page |
