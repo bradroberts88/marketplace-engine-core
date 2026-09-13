@@ -182,6 +182,11 @@ mkdir -p "$BOOT/qconnect"
 cp "$PAYLOAD_DIR/boot-payload/qconnect-firstrun.sh"         "$BOOT/qconnect/"
 cp "$PAYLOAD_DIR/device/qconnect-setup.sh"                  "$BOOT/qconnect/"
 cp "$PAYLOAD_DIR/device/qconnect-netmanager.sh"             "$BOOT/qconnect/"
+# qconnect-setup.sh SOURCES this one. A card written without it stops dead on
+# first boot with "no such file", online but unprovisioned and looking dead.
+cp "$PAYLOAD_DIR/device/qconnect-steps.sh"                  "$BOOT/qconnect/"
+cp "$PAYLOAD_DIR/device/qconnect-agent-update.sh"           "$BOOT/qconnect/"
+cp "$PAYLOAD_DIR/device/qconnect-command-exec.sh"           "$BOOT/qconnect/"
 cp "$PAYLOAD_DIR/device/qconnect-portal.py"                 "$BOOT/qconnect/"
 cp "$PAYLOAD_DIR/device/qconnect-heartbeat.sh"              "$BOOT/qconnect/"
 cp "$PAYLOAD_DIR/device/systemd/qconnect-setup.service"     "$BOOT/qconnect/"

@@ -44,8 +44,16 @@ systemctl is-active NetworkManager >/dev/null 2>&1 || \
 install -d -m 755 /opt/qconnect /opt/qconnect/state
 install -d -m 700 /opt/qconnect/etc
 
-for f in qconnect-setup.sh qconnect-netmanager.sh qconnect-portal.py qconnect-heartbeat.sh; do
+# qconnect-steps.sh is SOURCED by qconnect-setup.sh, and the update/command
+# scripts are what let a box be fixed remotely. A card missing any of them
+# boots, looks alive and never finishes setting itself up.
+for f in qconnect-setup.sh qconnect-netmanager.sh qconnect-steps.sh qconnect-portal.py \
+         qconnect-heartbeat.sh; do
   install -m 755 "$SRC/$f" "/opt/qconnect/$f" || die "could not install $f"
+done
+# Optional on older cards; required for remote repair on new ones.
+for f in qconnect-agent-update.sh qconnect-command-exec.sh; do
+  [ -f "$SRC/$f" ] && install -m 755 "$SRC/$f" "/opt/qconnect/$f"
 done
 install -m 600 "$SRC/provision.json" /opt/qconnect/etc/provision.json || die "could not install provision.json"
 [ -f "$SRC/VERSION" ] && install -m 644 "$SRC/VERSION" /opt/qconnect/VERSION
