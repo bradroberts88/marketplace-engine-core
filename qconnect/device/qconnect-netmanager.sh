@@ -362,10 +362,26 @@ try_hotspot() {
 # moment anything works; returns 1 only when all of them are exhausted, which is
 # the signal for the caller to raise the setup hotspot and ask a human.
 connect_any() {
-  local p
+  local p reason
+
+  # A broken network service is a fault in its own right, and used to look
+  # exactly like "no networks in range".
+  if ! nm_available; then
+    nm_log "NetworkManager is not running: $(nm_health_detail)"
+    echo netmanager_unavailable > "$STATE/last_block_reason"
+    write_net_state none "" netmanager_unavailable
+    report_net_event netmanager_unavailable none "$(nm_health_detail)" false
+    # Try to revive it once; a masked or crashed service is recoverable.
+    systemctl restart NetworkManager >/dev/null 2>&1
+    sleep 10
+    nm_available || return 1
+    nm_log "NetworkManager came back after a restart."
+  fi
+
   if online; then
     p=$(active_path)
     write_net_state "${p%%:*}" "${p#*:}"
+    report_net_event ok "${p%%:*}" "${p#*:}"
     return 0
   fi
   for attempt in ethernet wifi cellular hotspot; do
@@ -378,10 +394,13 @@ connect_any() {
     if [ $? -eq 0 ]; then
       p=$(active_path)
       write_net_state "${p%%:*}" "${p#*:}"
+      report_net_event ok "${p%%:*}" "${p#*:}"
       return 0
     fi
   done
-  write_net_state none "" "$(cat "$STATE/last_block_reason" 2>/dev/null || echo no_path)"
+  reason=$(cat "$STATE/last_block_reason" 2>/dev/null || echo no_path)
+  write_net_state none "" "$reason"
+  report_net_event "$reason" none "$(active_path)"
   return 1
 }
 
