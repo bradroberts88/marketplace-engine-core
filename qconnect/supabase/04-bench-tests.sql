@@ -96,7 +96,14 @@ begin
     (v_run, 6, '6.3', 'authkey redacted on ext4; test device disabled afterwards'),
     (v_run, 7, '7.1', 'Box left running 24 h in a case'),
     (v_run, 7, '7.2', 'No heartbeat gap over 15 min, temp under 70 C, mem free over 100 MB'),
-    (v_run, 7, '7.3', 'Steady-state temperature and free memory recorded');
+    (v_run, 7, '7.3', 'Steady-state temperature and free memory recorded'),
+    (v_run, 8, '8.1', 'Cellular: AT&T SIM detected by ModemManager'),
+    (v_run, 8, '8.2', 'Cellular: modem registers to tower with no PIN lock'),
+    (v_run, 8, '8.3', 'Cellular: box comes online using APN broadband with no Wi-Fi or cable'),
+    (v_run, 8, '8.4', 'Cellular: heartbeat reports connection_path=cellular and link_quality > 0'),
+    (v_run, 8, '8.5', 'Cellular: wrong APN (e.g. invalid.example) fails with cellular_failed'),
+    (v_run, 8, '8.6', 'Cellular: failover from cellular to cable works when cable is plugged in'),
+    (v_run, 8, '8.7', 'Cellular: portal APN override persists to provision.json and reconnects');
 
   return v_run;
 end;
