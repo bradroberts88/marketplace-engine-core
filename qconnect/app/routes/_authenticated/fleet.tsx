@@ -4,16 +4,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  listAudit,
-  listFleet,
-  setDeviceEnabled,
-  type FleetDevice,
-} from "@/lib/qconnect.functions";
+import { listAudit, listFleet, setDeviceEnabled, type FleetDevice } from "@/lib/qconnect.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { formatUsDateTime } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/fleet")({
   component: FleetPage,
@@ -153,7 +149,13 @@ function FleetPage() {
                     ) : null}
                   </dd>
                   <dt className="text-muted-foreground">Signal</dt>
-                  <dd className={device.link_quality !== null && device.link_quality < 30 ? "text-destructive" : ""}>
+                  <dd
+                    className={
+                      device.link_quality !== null && device.link_quality < 30
+                        ? "text-destructive"
+                        : ""
+                    }
+                  >
                     {device.link_quality !== null ? `${device.link_quality} %` : "—"}
                   </dd>
                   <dt className="text-muted-foreground">Last check-in</dt>
@@ -201,7 +203,7 @@ function FleetPage() {
               <p key={entry.id} className="text-muted-foreground">
                 <span className="text-foreground">{entry.actor_email ?? "unknown"}</span>{" "}
                 {entry.action}d <span className="font-mono">{entry.device_id}</span> —{" "}
-                {new Date(entry.created_at).toLocaleString("en-GB")}
+                {formatUsDateTime(entry.created_at)}
               </p>
             ))
           )}

@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { formatUsDate } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/releases")({
   component: ReleasesPage,
@@ -39,12 +40,6 @@ export const Route = createFileRoute("/_authenticated/releases")({
   }),
 });
 
-const formatDate = (value: string): string => {
-  const date = new Date(value);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
-};
-
 function ReleasesPage() {
   const queryClient = useQueryClient();
   const [version, setVersion] = useState("");
@@ -60,8 +55,14 @@ function ReleasesPage() {
   const start = useServerFn(startRollout);
   const stop = useServerFn(stopRollout);
 
-  const releases = useQuery({ queryKey: ["qconnect", "releases"], queryFn: () => fetchReleases({}) });
-  const rollouts = useQuery({ queryKey: ["qconnect", "rollouts"], queryFn: () => fetchRollouts({}) });
+  const releases = useQuery({
+    queryKey: ["qconnect", "releases"],
+    queryFn: () => fetchReleases({}),
+  });
+  const rollouts = useQuery({
+    queryKey: ["qconnect", "rollouts"],
+    queryFn: () => fetchRollouts({}),
+  });
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["qconnect", "releases"] });
@@ -205,7 +206,7 @@ function ReleasesPage() {
                     )}
                   </div>
                   <p className="text-muted-foreground text-xs">
-                    Published {formatDate(release.created_at)} · {release.notes ?? "No notes"}
+                    Published {formatUsDate(release.created_at)} · {release.notes ?? "No notes"}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2">

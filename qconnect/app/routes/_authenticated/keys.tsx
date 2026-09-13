@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { formatUsDate } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/keys")({
   component: KeysPage,
@@ -32,13 +33,6 @@ export const Route = createFileRoute("/_authenticated/keys")({
     ],
   }),
 });
-
-const formatDate = (value: string | null): string => {
-  if (!value) return "—";
-  const date = new Date(value);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
-};
 
 const stateBadge = (key: CardKey) => {
   switch (key.key_state) {
@@ -121,8 +115,9 @@ function KeysPage() {
                   {stateBadge(key)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {key.dealer_id ?? "No dealership"} · Written {formatDate(key.tailscale_key_issued_at)} ·
-                  Runs out {formatDate(key.tailscale_key_expires_at)} ·
+                  {key.dealer_id ?? "No dealership"} · Written{" "}
+                  {formatUsDate(key.tailscale_key_issued_at)} · Runs out{" "}
+                  {formatUsDate(key.tailscale_key_expires_at)} ·
                   {key.tailscale_key_id ? ` Key ${key.tailscale_key_id}` : " Key id not recorded"}
                 </p>
               </div>
