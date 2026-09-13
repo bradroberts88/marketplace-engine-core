@@ -11,6 +11,10 @@ Documentation=https://github.com/dogershub/autopost
 After=network-online.target
 Wants=network-online.target
 # Don't spin if config.json isn't there yet (a generic image claims it on first boot — see autopost-claim.service).
+# RequiresMountsFor is mandatory alongside the condition: on a data-partition image the condition can be
+# evaluated before /var/lib/autopost is mounted, and a condition-skipped unit is skipped for the WHOLE boot
+# (Restart= never applies to a skipped unit). That is the timing-dependent "this Pi shows offline" bug.
+RequiresMountsFor=/var/lib/autopost
 ConditionFileNotEmpty=/var/lib/autopost/config.json
 # Never rate-limit restarts — a fresh device with no internet yet must keep retrying forever. (Belongs in
 # [Unit], not [Service]; systemd ignores it in [Service] with an "Unknown key" warning.)

@@ -2,6 +2,10 @@
 Description=QConnect zero-touch provisioning
 After=NetworkManager.service
 Wants=NetworkManager.service
+# Without this the condition below can be evaluated before the boot partition is
+# mounted; a Type=oneshot unit that is condition-skipped is skipped for the WHOLE
+# boot and Restart= never applies. That is the "some boots it just never runs" bug.
+RequiresMountsFor=/boot/firmware
 ConditionPathExists=!/opt/qconnect/state/provisioned
 
 [Service]

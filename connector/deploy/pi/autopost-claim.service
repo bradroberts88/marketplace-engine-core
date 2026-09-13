@@ -11,6 +11,10 @@
 Description=AutoPost connector first-boot claim (self-provision config)
 After=network-online.target tailscaled.service
 Wants=network-online.target
+# Both conditions read files on mounted partitions. Without RequiresMountsFor, systemd can evaluate them before
+# the vfat boot partition (or the data partition) is mounted, and a condition-skipped oneshot is skipped for the
+# WHOLE boot — Restart= never applies to a skipped unit. That is the timing-dependent "this card never claimed" bug.
+RequiresMountsFor=/boot/firmware /var/lib/autopost
 ConditionFileNotEmpty=!/var/lib/autopost/config.json
 ConditionFileNotEmpty=/boot/firmware/autopost-claim.env
 Before=autopost-connector.service

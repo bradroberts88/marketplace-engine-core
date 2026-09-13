@@ -69,11 +69,50 @@ select case when public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc','{}'
 
 -- 9. bench run seeds the full checklist and the go/no-go rule holds
 select public.qconnect_bench_start('QCN-TEST-001','Bench VA','Pi Zero 2 W') as run \gset
-select case when count(*) = 29 then 'PASS 29 checklist steps seeded'
+select case when count(*) = 40 then 'PASS 40 checklist steps seeded'
             else 'FAIL seeded ' || count(*) end
 from public.qconnect_bench_checks where run_id = :'run';
+select case when count(*) = 10 then 'PASS connectivity phase seeded'
+            else 'FAIL connectivity phase ' || count(*) end
+from public.qconnect_bench_checks where run_id = :'run' and phase = 8;
 select case when public.qconnect_bench_finish(:'run') = 'no_go'
        then 'PASS open steps produce no_go' else 'FAIL verdict' end;
 update public.qconnect_bench_checks set passed = true where run_id = :'run';
 select case when public.qconnect_bench_finish(:'run') = 'go'
        then 'PASS all steps passed produce go' else 'FAIL verdict' end;
+
+-- 10. connectivity reporting (05): the heartbeat's path/error fields land in
+-- real columns and the fleet view turns them into one health verdict.
+select public.qconnect_set_enabled('QCN-TEST-001', true);
+select public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc', jsonb_build_object(
+  'connection_path','wifi','connection_detail','DealerGuest','link_quality',72,
+  'pi_model','Raspberry Pi Zero 2 W','agent_version','2026.09.13'));
+select case when connection_path='wifi' and connection_detail='DealerGuest'
+             and link_quality=72 and health='healthy'
+       then 'PASS connectivity fields recorded' else 'FAIL connectivity ' || health end
+from public.qconnect_fleet where device_id='QCN-TEST-001';
+
+-- A box that cannot get online reports why, and the verdict says so.
+select public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc', jsonb_build_object(
+  'connection_path','hotspot','stuck_step','network','last_error','wrong_password'));
+select case when health='stuck_network' and last_error='wrong_password'
+       then 'PASS stuck box explains itself' else 'FAIL health ' || health end
+from public.qconnect_fleet where device_id='QCN-TEST-001';
+
+-- Recovery clears the fault instead of leaving a stale scare on the dashboard.
+select public.qconnect_heartbeat('QCN-TEST-001','plain-token-abc', jsonb_build_object(
+  'connection_path','ethernet','connection_detail','eth0','link_quality',100));
+select case when health='healthy' and stuck_step is null and last_error is null
+             and connection_path='ethernet'
+       then 'PASS recovery clears the fault' else 'FAIL still ' || health end
+from public.qconnect_fleet where device_id='QCN-TEST-001';
+
+-- Registration still refuses an unknown token, now on the wider signature.
+do $$
+begin
+  perform public.qconnect_register('QCN-GHOST'::text,'d'::text,'nope'::text,
+                                   '100.64.0.9'::text,'wifi'::text,'x'::text,'Pi 4'::text);
+  raise notice 'FAIL ghost device registered';
+exception when others then
+  raise notice 'PASS unknown device still rejected on the wider signature';
+end $$;

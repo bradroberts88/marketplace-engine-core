@@ -2,7 +2,9 @@
 Description=QConnect heartbeat every 5 minutes
 
 [Timer]
-OnBootSec=2min
+# 45s, not 2 minutes: the first beat should land as soon as the box has any
+# internet, not long after setup has finished a 15-minute hotspot window.
+OnBootSec=45s
 OnUnitActiveSec=5min
 RandomizedDelaySec=30
 
