@@ -90,7 +90,7 @@ chown -R autopost:autopost "$APP_DIR" "$DATA_DIR"
 
 # 4) systemd service (24/7 auto-start + restart-forever).
 cp "$(dirname "$0")/autopost-connector.service" "$SVC"
-# (autopost-claim.service retired; see attic/autopost-pi/.)
+cp "$(dirname "$0")/autopost-claim.service" /etc/systemd/system/autopost-claim.service 2>/dev/null || true
 # POLKIT rule — authorizes the unprivileged `autopost` user to drive nmcli. WITHOUT this the remote change-WiFi
 # path (agent onWifi -> set-wifi.sh) silently fails, which is the ONE lever we have when a box is on the wrong
 # network. (Bug found 2026-07-15: the rule file documented itself as installed here, but nothing copied it.)
@@ -102,7 +102,9 @@ if [ -f "$(dirname "$0")/50-autopost-nm.rules" ]; then
 fi
 systemctl daemon-reload 2>/dev/null || true   # (image-bake chroot has no running systemd — harmless to skip there)
 systemctl enable autopost-connector.service 2>/dev/null || true
-# SELF-CLAIM at first boot: RETIRED — replaced by QConnect self-registration (qconnect-setup.service).
+# SELF-CLAIM at first boot: double-gated by the unit itself (runs ONLY if config.json is absent AND a claim env
+# was dropped on the boot partition), so enabling it is safe for a pre-baked pilot box - it just no-ops there.
+systemctl enable autopost-claim.service 2>/dev/null || true
 
 # 4b) WiFi-RECOVERY service — the on-device rescue when a box is flashed with the WRONG WiFi credentials. It is
 # headless with no internet, so there is no SSH/Tailscale/remote fix; this raises an "AutoPost-Setup" hotspot +
@@ -110,7 +112,10 @@ systemctl enable autopost-connector.service 2>/dev/null || true
 # box never claims) as the autopost user (nmcli authorized by the polkit rule above). The captive DNS conf makes
 # every phone auto-pop the setup page. See src/wifi-recovery.js.
 cp "$(dirname "$0")/autopost-wifi-recovery.service" /etc/systemd/system/autopost-wifi-recovery.service 2>/dev/null || true
-# (The old AutoPost captive-portal DNS conf is retired; QConnect writes its own wildcard rule.)
+if [ -f "$(dirname "$0")/autopost-captive-dnsmasq.conf" ]; then
+  mkdir -p /etc/NetworkManager/dnsmasq-shared.d
+  cp "$(dirname "$0")/autopost-captive-dnsmasq.conf" /etc/NetworkManager/dnsmasq-shared.d/autopost-captive.conf
+fi
 # NetworkManager's AP "shared" mode (ipv4.method=shared) needs dnsmasq-base to hand out DHCP + DNS on the setup AP;
 # a minimal Pi OS Lite image may lack it, and without it the recovery AP raises but no phone can get an IP or reach
 # the portal. Install the -base package ONLY (the full `dnsmasq` package runs a conflicting daemon on :53).
