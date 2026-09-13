@@ -18,9 +18,11 @@ dashboard.
 3. **A strict checklist per card.** Pre-registering a card at the bench opens a
    run: powered on, internet up, tunnel up, registered, first check-in, first
    listing — each with a deadline. Nothing silently never happens any more.
-4. **Five workers, once a minute.** Overdue steps, boxes gone quiet (20
-   minutes), instructions never collected, updates that never reported healthy,
-   and the email hand-off.
+ 4. **Five workers, every 30 minutes, 7am-8pm Mountain time.** Overdue steps,
+    boxes gone quiet (20 minutes), instructions never collected, updates that
+    never reported healthy, and the email hand-off. Outside that window the
+    workers wake and go straight back to sleep, so an overnight problem surfaces
+    in the 7am batch.
 5. **Alerts on the dashboard and by email.** Repeats fold into one row and one
    email, so a flapping box cannot flood the inbox.
 
@@ -66,9 +68,11 @@ golden image.
 
 ## Scheduling
 
-The workers are scheduled by `pg_cron` as `qconnect-workers`, every minute.
-The email leg is an app route; point a scheduler at it every minute with the
-shared cron secret:
+The workers are scheduled by `pg_cron` as `qconnect-workers`, every 30
+minutes. The entry point checks the time in `America/Denver` and does nothing
+outside 07:00-20:00, so the window stays right through daylight-saving
+changes. The email leg is an app route; point a scheduler at it every 30
+minutes with the shared cron secret:
 
 ```
 POST https://<your-app>/api/public/qconnect-alert-emails

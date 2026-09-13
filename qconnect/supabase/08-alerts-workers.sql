@@ -1,9 +1,11 @@
 -- QConnect 08 — alerts and the background workers that raise them
 --
--- Nothing here waits for someone to open the dashboard. Five workers run once
--- a minute: they fail overdue steps, notice boxes that went quiet, expire
--- commands a box never picked up, catch updates that never reported back
--- healthy, and hand new alerts to the email dispatcher.
+-- Nothing here waits for someone to open the dashboard. Five workers run every
+-- 30 minutes between 07:00 and 20:00 Mountain time: they fail overdue steps,
+-- notice boxes that went quiet, expire commands a box never picked up, catch
+-- updates that never reported back healthy, and hand new alerts to the email
+-- dispatcher. Outside that window the workers wake and go straight back to
+-- sleep, so overnight problems surface in the morning batch.
 --
 -- Run AFTER 07. Idempotent, safe on a live fleet.
 
@@ -250,23 +252,34 @@ language sql security definer set search_path = public as $$
 $$;
 revoke execute on function public.qconnect_mark_alert_emailed(uuid[]) from anon, authenticated, public;
 
+-- The scheduler wakes this every 30 minutes, but the fleet only gets
+-- attention during business hours: 07:00-20:00 Mountain time, every day.
+-- Checking the hour here (not in the cron pattern) keeps the window correct
+-- through daylight-saving changes, since America/Denver handles DST itself.
 create or replace function public.qconnect_run_workers()
 returns jsonb
-language sql security definer set search_path = public as $$
-  select jsonb_build_object(
+language plpgsql security definer set search_path = public as $$
+declare v_hour integer;
+begin
+  v_hour := extract(hour from now() at time zone 'America/Denver');
+  if v_hour < 7 or v_hour >= 20 then
+    return jsonb_build_object('skipped', 'outside 07:00-20:00 America/Denver', 'at', now());
+  end if;
+  return jsonb_build_object(
     'steps',    public.qconnect_worker_steps(),
     'silence',  public.qconnect_worker_silence(),
     'commands', public.qconnect_worker_commands(),
     'updates',  public.qconnect_worker_updates(),
     'at',       now()
   );
+end;
 $$;
 revoke execute on function public.qconnect_run_workers() from anon, authenticated, public;
 
 -- ------------------------------------------------- heartbeat closes the loop
 -- Same signature as 05 plus two things: a check-in ticks the onboarding
 -- checklist, and it clears the "gone quiet" alert immediately rather than
--- waiting up to a minute for the worker.
+-- waiting for the next worker run.
 create or replace function public.qconnect_heartbeat(
   p_device_id text, p_device_token text, p_status jsonb
 ) returns boolean
@@ -334,7 +347,7 @@ do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.unschedule(jobid) from cron.job where jobname = 'qconnect-workers';
-    perform cron.schedule('qconnect-workers', '* * * * *', 'select public.qconnect_run_workers()');
+    perform cron.schedule('qconnect-workers', '*/30 * * * *', 'select public.qconnect_run_workers()');
   end if;
 end;
 $$;

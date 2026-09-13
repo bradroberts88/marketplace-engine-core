@@ -48,8 +48,9 @@ qconnect/
    Sign out and back in so the new token carries the claim. For dealership staff, set
    `{"dealer_id":"their-dealer-id"}` instead — they then see only their own boxes.
 3. Copy the app files into `src/` and add links to `/fleet`, `/bench`, `/alerts` and `/releases` in
-   your navigation. For alert emails, set `QCONNECT_ALERT_EMAIL` and point a scheduler at
-   `/api/public/qconnect-alert-emails` every minute — see `docs/REMOTE-OPS.md`.
+    your navigation. For alert emails, set `QCONNECT_ALERT_EMAIL` and point a scheduler at
+    `/api/public/qconnect-alert-emails` every 30 minutes — see `docs/REMOTE-OPS.md`.
+    The workers themselves run every 30 minutes between 7am and 8pm Mountain time.
 4. Flash a card with `flash/provision-sd.sh` (it pre-registers the device itself now) and work
    through the bench screen. See `docs/CONNECTIVITY.md` for the connection options.
 
