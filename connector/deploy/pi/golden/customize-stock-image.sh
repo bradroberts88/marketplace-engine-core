@@ -168,32 +168,9 @@ test -f "$MNT/opt/autopost/connector/src/wifi-recovery.js" || { echo "ERROR: rec
 test -f "$MNT/etc/systemd/system/autopost-wifi-recovery.service" || { echo "ERROR: recovery service not installed"; exit 1; }
 test -L "$MNT/etc/systemd/system/multi-user.target.wants/autopost-wifi-recovery.service" || echo "WARN: recovery service may not be enabled"
 chroot "$MNT" dpkg -s dnsmasq-base >/dev/null 2>&1 && LOG "dnsmasq-base present" || echo "WARN: dnsmasq-base missing"
-# The Bluetooth rescue channel. Hard-asserted like the WiFi one: it is the REDUNDANT way in, so an image that
-# silently shipped without it would look identical to a good one right up until the day the WiFi rescue is the
-# thing that failed - which is the exact scenario it exists for.
-test -f "$MNT/opt/autopost/connector/deploy/pi/autopost-ble-setup.py" || { echo "ERROR: BLE setup code not installed"; exit 1; }
-test -f "$MNT/etc/systemd/system/autopost-ble-setup.service" || { echo "ERROR: BLE setup service not installed"; exit 1; }
-test -f "$MNT/etc/dbus-1/system.d/60-autopost-bluez.conf" || { echo "ERROR: BlueZ D-Bus policy not installed"; exit 1; }
-for pkg in bluez python3-dbus python3-gi; do
-  chroot "$MNT" dpkg -s "$pkg" >/dev/null 2>&1 || { echo "ERROR: $pkg missing - the BLE rescue channel cannot start"; exit 1; }
-done
-# hciuart is what ATTACHES the radio on every Pi whose Bluetooth hangs off the UART (Zero W, 3, 4). Without it
-# there is no hci0 at all, so bluetoothd starts, the BLE service starts, everything reports healthy, and the
-# device never advertises. Asserted as a CAPABILITY (the unit file exists) rather than as "the pi-bluetooth
-# package is installed", because the unit is the thing that actually has to be there and the package that
-# provides it has changed name before.
-[ -f "$MNT/lib/systemd/system/hciuart.service" ] || [ -f "$MNT/usr/lib/systemd/system/hciuart.service" ]   || { echo "ERROR: hciuart.service missing (pi-bluetooth did not install) - the Bluetooth radio would never be"
-       echo "       attached, so the BLE rescue channel cannot work on Zero W / Pi 3 / Pi 4 hardware."
-       echo "       Re-run the build; if it persists, check the apt mirror is reachable from the chroot."; exit 1; }
-# ast.parse rather than compileall: it proves the image's own (possibly older) python3 can parse the file
-# without leaving a root-owned __pycache__ inside a tree that belongs to the autopost user.
-chroot "$MNT" python3 -c 'import ast,sys; ast.parse(open("/opt/autopost/connector/deploy/pi/autopost-ble-setup.py").read())'   >/dev/null 2>&1 && LOG "BLE setup script parses under the image's python3" || { echo "ERROR: autopost-ble-setup.py does not parse in the image"; exit 1; }
-# A config.txt that disables the Bluetooth radio would make the whole channel dead on arrival.
-for CFG in "$MNT/boot/firmware/config.txt" "$MNT/boot/config.txt"; do
-  [ -f "$CFG" ] || continue
-  grep -qE '^[[:space:]]*dtoverlay=(disable-bt|pi3-disable-bt)' "$CFG" 2>/dev/null     && { echo "ERROR: $CFG disables Bluetooth - the BLE rescue channel cannot work"; exit 1; }
-done
-LOG "BLE rescue channel present and enabled"
+# The Bluetooth onboarding channel is RETIRED (see attic/autopost-pi/). Card onboarding is now the QConnect
+# captive portal, which needs no extra packages, no D-Bus policy, and no radio a config.txt line can switch off.
+# The old hard assertions are removed rather than downgraded: an image is no longer expected to carry that channel.
 chroot "$MNT" node --version >/dev/null 2>&1 && LOG "node present" || echo "WARN: node missing"
 [ -x "$MNT/usr/bin/tailscale" ] && LOG "tailscale present (recall path)" || echo "WARN: tailscale missing"
 chroot "$MNT" id -nG autopost 2>/dev/null | grep -qw video && LOG "autopost in 'video' group (telemetry)" || echo "WARN: autopost not in video group"
@@ -201,18 +178,18 @@ chroot "$MNT" id -nG autopost 2>/dev/null | grep -qw video && LOG "autopost in '
 # 8a) FORCE-ENABLE the services. `systemctl enable` inside a qemu-emulated chroot does NOT reliably create the
 #     multi-user.target.wants symlinks, so a box built this way would boot and start NOTHING (no connector, no WiFi
 #     rescue, no Tailscale). Create the wants symlinks directly (works regardless of systemctl) and HARD-ASSERT.
-LOG "force-enabling services (connector, claim, wifi-recovery, ble-setup, bluetooth, tailscaled)"
+LOG "force-enabling services (connector, wifi-recovery, tailscaled)"
 install -d "$MNT/etc/systemd/system/multi-user.target.wants"
 # hciuart is deliberately NOT in this list. It is triggered by dev-serial1.device appearing - the pi-bluetooth
 # package installs that wants-link itself - and forcing it into multi-user.target as well makes systemd run it
 # before the UART device node exists, which fails, logs a failed unit, and then succeeds when the device shows
 # up. Harmless, but a spurious failed unit in the journal of a box whose diagnostics are supposed to mean
 # something is exactly the noise this work is trying to remove. Verified below instead.
-for svc in autopost-connector autopost-claim autopost-wifi-recovery autopost-ble-setup bluetooth autopost-tailscale tailscaled; do
+for svc in autopost-connector autopost-wifi-recovery tailscaled; do
   U="/etc/systemd/system/${svc}.service"; [ -f "$MNT$U" ] || U="/usr/lib/systemd/system/${svc}.service"
   [ -f "$MNT$U" ] && ln -sf "$U" "$MNT/etc/systemd/system/multi-user.target.wants/${svc}.service"
 done
-for svc in autopost-connector autopost-wifi-recovery autopost-ble-setup autopost-tailscale tailscaled; do
+for svc in autopost-connector autopost-wifi-recovery tailscaled; do
   [ -L "$MNT/etc/systemd/system/multi-user.target.wants/${svc}.service" ] || { echo "ERROR: ${svc}.service not enabled in the image"; exit 1; }
 done
 # bluetooth/hciuart ship their own [Install] wants and some releases enable them via a different target, so they
