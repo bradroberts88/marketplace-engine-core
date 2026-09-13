@@ -43,6 +43,7 @@ DEVICE_ID=$(jget device_id)
 DEALER_ID=$(jget dealer_id)
 DEVICE_TOKEN=$(jget device_token)
 TS_KEY=$(jget tailscale_authkey)
+ENROL_TICKET=$(jget enrolment_ticket)
 SB_URL=$(jget supabase_url); SB_URL=${SB_URL%/}
 SB_KEY=$(jget supabase_anon_key)
 
@@ -114,6 +115,14 @@ ap_fallback_cycle() {
       start_ap   # re-raise the AP (joining the dealer network tore it down)
       deadline=$(( $(date +%s) + AP_WINDOW ))
     fi
+    # Staff pressed Retry on the setup page (they just plugged a cable in, or
+    # re-seated the SIM). Go straight back round the whole list.
+    if [ -f "$STATE/retry-now" ]; then
+      rm -f "$STATE/retry-now"
+      log "Retry requested from the setup page."
+      stop_ap
+      return 1
+    fi
     sleep 5
   done
   stop_ap
@@ -140,16 +149,32 @@ join_tailnet() {
   return 0
 }
 
-# --- Supabase registration -------------------------------------------------
+# --- registration ----------------------------------------------------------
+# First boot uses the enrolment ticket written at the bench: the card creates
+# its own row, nobody runs SQL, and the ticket is burned on use. Cards flashed
+# before tickets existed fall back to the old pre-registered path.
 register_device() {
-  local ts_ip payload code body path detail model
+  local ts_ip payload code body path detail model rpc
   ts_ip=$(tailscale ip -4 2>/dev/null | head -1)
   # Record how this box got online at the moment it registers, so the very
   # first fleet row already answers "cable, Wi-Fi or mobile data?".
   path=$(python3 -c "import json;print(json.load(open('$STATE/net-state.json')).get('connection_path',''))" 2>/dev/null)
   detail=$(python3 -c "import json;print(json.load(open('$STATE/net-state.json')).get('connection_detail',''))" 2>/dev/null)
   model=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)
-  payload=$(python3 - "$DEVICE_ID" "$DEALER_ID" "$DEVICE_TOKEN" "$ts_ip" "$path" "$detail" "$model" <<'PYEOF'
+
+  if [ -n "$ENROL_TICKET" ]; then
+    rpc=qconnect_self_register
+    payload=$(python3 - "$DEVICE_ID" "$ENROL_TICKET" "$DEVICE_TOKEN" "$ts_ip" "$path" "$detail" "$model" <<'PYEOF'
+import json, sys
+a = sys.argv
+print(json.dumps({"p_device_id": a[1], "p_ticket": a[2], "p_device_token": a[3],
+                  "p_tailscale_ip": a[4], "p_connection_path": a[5],
+                  "p_connection_detail": a[6], "p_pi_model": a[7]}))
+PYEOF
+)
+  else
+    rpc=qconnect_register
+    payload=$(python3 - "$DEVICE_ID" "$DEALER_ID" "$DEVICE_TOKEN" "$ts_ip" "$path" "$detail" "$model" <<'PYEOF'
 import json, sys
 a = sys.argv
 print(json.dumps({"p_device_id": a[1], "p_dealer_id": a[2],
@@ -158,25 +183,53 @@ print(json.dumps({"p_device_id": a[1], "p_dealer_id": a[2],
                   "p_pi_model": a[7]}))
 PYEOF
 )
+  fi
+
   code=$(curl -s -o /tmp/qconnect-reg.out -w '%{http_code}' --max-time 20 \
-    -X POST "$SB_URL/rest/v1/rpc/qconnect_register" \
+    -X POST "$SB_URL/rest/v1/rpc/$rpc" \
     -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" \
     -H "Content-Type: application/json" -d "$payload")
   if [ "$code" = "200" ] || [ "$code" = "204" ]; then
-    log "Registered with Supabase."
+    log "Registered with the server via $rpc."
     rm -f "$STATE/last_error"
     return 0
   fi
   body=$(head -c 300 /tmp/qconnect-reg.out)
-  log "Supabase registration failed (HTTP $code): $body"
-  # "registration rejected" here almost always means the card was never
-  # pre-registered at the bench - say so in plain words.
+  log "Registration failed (HTTP $code): $body"
   case "$body" in
+    *"not recognised"*)
+      echo "enrol: the server does not know this card's ticket" > "$STATE/last_error"
+      report_enrolment_failure "ticket not recognised" ;;
+    *"expired"*)
+      echo "enrol: the enrolment ticket expired before first boot" > "$STATE/last_error"
+      report_enrolment_failure "ticket expired" ;;
+    *"already used"*)
+      echo "enrol: this ticket was already used by another card" > "$STATE/last_error"
+      report_enrolment_failure "ticket already used" ;;
+    *"another box"*)
+      echo "enrol: ticket belongs to a different box" > "$STATE/last_error"
+      report_enrolment_failure "ticket belongs to another box" ;;
     *"registration rejected"*)
-      echo "register: card was never pre-registered (HTTP $code)" > "$STATE/last_error" ;;
+      echo "register: card was never pre-registered (HTTP $code)" > "$STATE/last_error"
+      report_enrolment_failure "card was never pre-registered" ;;
     *) echo "register: HTTP $code ${body:0:160}" > "$STATE/last_error" ;;
   esac
   return 1
+}
+
+# A card with a bad ticket cannot write anything, so it knocks on this one door
+# instead. The server raises an alert; the operator sees it within a minute.
+report_enrolment_failure() {
+  local payload
+  payload=$(python3 - "$DEVICE_ID" "$1" <<'PYEOF'
+import json, sys
+print(json.dumps({"p_device_id": sys.argv[1], "p_reason": sys.argv[2]}))
+PYEOF
+)
+  curl -s -o /dev/null --max-time 12 \
+    -X POST "$SB_URL/rest/v1/rpc/qconnect_report_enrolment_failure" \
+    -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" \
+    -H "Content-Type: application/json" -d "$payload" || true
 }
 
 # --- main loop --------------------------------------------------------------

@@ -30,6 +30,8 @@ NET_STATE = os.path.join(STATE_DIR, "net-state.json")
 # dealer LAN whenever the two profiles overlapped.
 BIND_ADDR = os.environ.get("QCONNECT_PORTAL_BIND", "10.42.0.1")
 
+EVENTS_LOG = os.path.join(STATE_DIR, "net-events.log")
+
 REASONS = {
     "ok": "Connected.",
     "wrong_password": "That password was not accepted. Check it and try again.",
@@ -46,6 +48,11 @@ REASONS = {
     "cellular_sim_disabled": "The SIM or modem RF is disabled. Check the SIM seating.",
     "cellular_no_tower": "The modem cannot see a tower. Check the antenna and coverage.",
     "cellular_failed": "The modem could not connect. Check the SIM, signal and APN.",
+    "netmanager_unavailable": (
+        "The network service on this box is not running, so it cannot join anything. "
+        "Press Retry; if it keeps happening the card needs re-flashing."
+    ),
+    "no_wifi_radio": "This box has no working Wi-Fi radio. Use a cable or a mobile modem.",
     "no_path": "No cable, no known Wi-Fi, no modem.",
 }
 
@@ -144,9 +151,47 @@ def modem_state():
         return "no modem"
 
 
+def netmanager_state():
+    """Is the thing that does all the connecting actually running?
+
+    Every nmcli call returns empty when NetworkManager is missing or dead, which
+    used to look identical to "there are no networks here". Say it plainly.
+    """
+    try:
+        out = subprocess.run(["nmcli", "-t", "-f", "RUNNING", "general"],
+                             capture_output=True, text=True, timeout=8).stdout
+        if "running" in out:
+            return True, "running"
+    except FileNotFoundError:
+        return False, "not installed on this card"
+    except Exception:
+        pass
+    try:
+        state = subprocess.run(["systemctl", "is-active", "NetworkManager"],
+                               capture_output=True, text=True, timeout=8).stdout.strip()
+    except Exception:
+        state = "unknown"
+    return False, state or "stopped"
+
+
+def recent_events(limit=5):
+    """The last few connection attempts, newest first, in plain words."""
+    rows = []
+    for line in reversed(read_text(EVENTS_LOG).splitlines()):
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        when = parts[0].replace("T", " ").rstrip("Z")
+        rows.append((when, REASONS.get(parts[1], parts[1])))
+        if len(rows) >= limit:
+            break
+    return rows
+
+
 def esc(s):
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace('"', "&quot;"))
+
 
 
 PAGE = """<!doctype html>
@@ -185,11 +230,14 @@ FORM = """
 <h1>QConnect Setup</h1>
 <div class="sub">Device {dev}</div>
 {error}
+{nmwarn}
 <div class="status">
   <div><span>Network cable</span><b>{eth}</b></div>
   <div><span>Mobile modem</span><b>{modem}</b></div>
+  <div><span>Network service</span><b>{nmstate}</b></div>
   <div><span>Last problem</span><b>{reason}</b></div>
 </div>
+{history}
 <div class="sub">Plugging in a network cable is the fastest fix and needs nothing below.
 Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</div>
 <form method="POST" action="/setup">
@@ -206,6 +254,9 @@ Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</
   <label>Or type another APN</label>
   <input name="cellular_apn_manual" placeholder="e.g. m2m.com.attz" value="{apn_manual}">
   <button type="submit">Connect</button>
+</form>
+<form method="POST" action="/retry">
+  <button type="submit" style="background:#2c3a55">Retry with what is already saved</button>
 </form>
 """
 
@@ -238,6 +289,20 @@ class Portal(BaseHTTPRequestHandler):
         error = ""
         if result and result != "ok":
             error = f'<div class="err">{esc(REASONS.get(result, result))}</div>'
+
+        nm_ok, nm_detail = netmanager_state()
+        nmwarn = ""
+        if not nm_ok:
+            nmwarn = (f'<div class="err">{esc(REASONS["netmanager_unavailable"])}'
+                      f'<br><small>Service state: {esc(nm_detail)}</small></div>')
+
+        rows = recent_events()
+        history = ""
+        if rows:
+            items = "".join(
+                f"<div><span>{esc(when)}</span><b>{esc(what)}</b></div>" for when, what in rows)
+            history = f'<div class="status">{items}</div>'
+
         options = "".join(f"<option>{esc(s)}</option>" for s in scan_ssids())
         if not options:
             options = "<option value=''>(no scan available - type the name below)</option>"
@@ -248,9 +313,10 @@ class Portal(BaseHTTPRequestHandler):
         )
         apn_manual = "" if current_apn in ATT_APN_OPTIONS else current_apn
         self._send(PAGE.format(body=FORM.format(
-            dev=esc(device_id()), options=options, error=error,
+            dev=esc(device_id()), options=options, error=error, nmwarn=nmwarn,
             eth=esc(ethernet_state()), modem=esc(modem_state()),
-            reason=esc(message), apn_options=apn_options,
+            nmstate=esc("running" if nm_ok else nm_detail),
+            history=history, reason=esc(message), apn_options=apn_options,
             apn_manual=esc(apn_manual))), code)
 
     def do_GET(self):
@@ -266,6 +332,18 @@ class Portal(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         data = urllib.parse.parse_qs(self.rfile.read(length).decode())
+        # Retry: nudge the setup loop to try every path again with what is
+        # already saved. Useful after plugging a cable in or seating a SIM.
+        if self.path.startswith("/retry"):
+            os.makedirs(STATE_DIR, exist_ok=True)
+            with open(os.path.join(STATE_DIR, "retry-now"), "w") as f:
+                f.write("1")
+            try:
+                os.remove(RESULT_FILE)
+            except OSError:
+                pass
+            self._form()
+            return
         ssid = (data.get("ssid_manual", [""])[0] or data.get("ssid", [""])[0]).strip()
         password = data.get("pass", [""])[0]
         hidden = "yes" if data.get("hidden") else "no"

@@ -59,6 +59,65 @@ PYEOF
 
 pi_model() { tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo unknown; }
 
+# ------------------------------------------------- network service health
+# Everything below assumes NetworkManager. If it is missing, masked or dead,
+# every nmcli call quietly returns nothing and the box looks like it simply has
+# no networks in range. Say so instead: this is a fault, not an empty airwave.
+nm_available() {
+  command -v nmcli >/dev/null 2>&1 || return 1
+  nmcli -t -f RUNNING general 2>/dev/null | grep -q running && return 0
+  systemctl is-active --quiet NetworkManager 2>/dev/null && return 0
+  return 1
+}
+
+nm_health_detail() {
+  command -v nmcli >/dev/null 2>&1 || { echo "nmcli is not installed"; return; }
+  echo "NetworkManager is $(systemctl is-active NetworkManager 2>/dev/null || echo unknown)"
+}
+
+# Tell the server what just happened on the network. Best effort: a box with no
+# path cannot report that it has no path, which is exactly why the server also
+# runs its own deadline watchdog. Reasons are the same strings the setup screen
+# shows, so the phone and the dashboard never disagree.
+report_net_event() {
+  local reason="$1" path="${2:-}" detail="${3:-}" nm_ok="${4:-true}"
+  local dev tok url key last payload
+
+  mkdir -p "$STATE"
+  printf '%s\t%s\t%s\t%s\n' "$(date -u +%FT%TZ)" "$reason" "$path" "$detail" \
+    >> "$STATE/net-events.log"
+  tail -n 50 "$STATE/net-events.log" > "$STATE/net-events.log.tmp" 2>/dev/null &&
+    mv "$STATE/net-events.log.tmp" "$STATE/net-events.log"
+
+  # Do not spam an identical reason over and over; the server dedupes too, but
+  # there is no point burning a cellular megabyte on it.
+  last=$(cat "$STATE/net-event-last" 2>/dev/null)
+  [ "$last" = "$reason" ] && return 0
+  echo "$reason" > "$STATE/net-event-last"
+
+  [ -f "$PROV" ] || return 0
+  dev=$(pj device_id); tok=$(pj device_token)
+  url=$(pj supabase_url); url=${url%/}; key=$(pj supabase_anon_key)
+  [ -n "$dev" ] && [ -n "$tok" ] && [ -n "$url" ] || return 0
+
+  payload=$(QE_DEV="$dev" QE_TOK="$tok" QE_R="$reason" QE_P="$path" QE_D="$detail" QE_NM="$nm_ok" \
+    python3 -c '
+import json, os
+print(json.dumps({
+    "p_device_id": os.environ["QE_DEV"],
+    "p_device_token": os.environ["QE_TOK"],
+    "p_reason": os.environ["QE_R"],
+    "p_path": os.environ.get("QE_P") or None,
+    "p_detail": os.environ.get("QE_D") or None,
+    "p_netmanager_ok": os.environ.get("QE_NM", "true") == "true",
+}))' 2>/dev/null) || return 0
+
+  curl -s -o /dev/null --max-time 12 \
+    -X POST "$url/rest/v1/rpc/qconnect_report_net_event" \
+    -H "apikey: $key" -H "Authorization: Bearer $key" \
+    -H "Content-Type: application/json" -d "$payload" || true
+}
+
 # 2.4 GHz-only radios (Zero W, Zero 2 W, Pi 3) simply cannot see a 5 GHz SSID.
 # Knowing this on the server side turns "this one card won't connect" into a
 # one-line answer.
@@ -303,10 +362,26 @@ try_hotspot() {
 # moment anything works; returns 1 only when all of them are exhausted, which is
 # the signal for the caller to raise the setup hotspot and ask a human.
 connect_any() {
-  local p
+  local p reason
+
+  # A broken network service is a fault in its own right, and used to look
+  # exactly like "no networks in range".
+  if ! nm_available; then
+    nm_log "NetworkManager is not running: $(nm_health_detail)"
+    echo netmanager_unavailable > "$STATE/last_block_reason"
+    write_net_state none "" netmanager_unavailable
+    report_net_event netmanager_unavailable none "$(nm_health_detail)" false
+    # Try to revive it once; a masked or crashed service is recoverable.
+    systemctl restart NetworkManager >/dev/null 2>&1
+    sleep 10
+    nm_available || return 1
+    nm_log "NetworkManager came back after a restart."
+  fi
+
   if online; then
     p=$(active_path)
     write_net_state "${p%%:*}" "${p#*:}"
+    report_net_event ok "${p%%:*}" "${p#*:}"
     return 0
   fi
   for attempt in ethernet wifi cellular hotspot; do
@@ -319,10 +394,13 @@ connect_any() {
     if [ $? -eq 0 ]; then
       p=$(active_path)
       write_net_state "${p%%:*}" "${p#*:}"
+      report_net_event ok "${p%%:*}" "${p#*:}"
       return 0
     fi
   done
-  write_net_state none "" "$(cat "$STATE/last_block_reason" 2>/dev/null || echo no_path)"
+  reason=$(cat "$STATE/last_block_reason" 2>/dev/null || echo no_path)
+  write_net_state none "" "$reason"
+  report_net_event "$reason" none "$(active_path)"
   return 1
 }
 

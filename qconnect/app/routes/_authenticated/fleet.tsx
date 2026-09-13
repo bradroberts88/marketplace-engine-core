@@ -46,7 +46,12 @@ const errorLabel: Record<string, string> = {
   joined_but_no_internet: "Joined the Wi-Fi but there is no internet",
   captive_portal: "The network shows a sign-in page the box cannot complete",
   cellular_no_apn: "A modem is fitted but no APN was set",
+  cellular_sim_locked: "The SIM is PIN-locked and needs unlocking",
+  cellular_sim_disabled: "The SIM or modem radio is switched off; check the SIM is seated",
+  cellular_no_tower: "The modem cannot see a tower; check the antenna and coverage",
   cellular_failed: "The mobile modem could not connect",
+  netmanager_unavailable: "The network service on the box is not running",
+  no_wifi_radio: "This box has no working Wi-Fi radio; use a cable or a modem",
   no_path: "No cable, Wi-Fi or mobile data available",
 };
 
