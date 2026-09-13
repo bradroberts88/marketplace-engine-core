@@ -45,6 +45,10 @@ echo   === flasher: first-run injection ===
 node flasher\_test\inject.test.js || set "FAILED=1"
 
 echo.
+echo   === flasher: QConnect card payload ===
+node flasher\_test\qconnect-payload.test.js || set "FAILED=1"
+
+echo.
 echo   === flasher: capture WiFi on first boot ===
 node flasher\_test\nowifi.test.js || set "FAILED=1"
 

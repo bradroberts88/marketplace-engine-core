@@ -58,6 +58,8 @@ Copy in from `qconnect/app/`:
 
 - `routes/_authenticated/bench.tsx` — new page.
 - `routes/_authenticated/releases.tsx` — new page.
+- `routes/_authenticated/keys.tsx` — new page: one remote-access key per card,
+  how long each has left, and an admin-only button to retire one.
 - `lib/qconnect.functions.ts`, `lib/qconnect-ops.functions.ts` — server
   functions behind them.
 

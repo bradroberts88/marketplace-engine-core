@@ -711,6 +711,13 @@ function firstRunScriptSelfContained(plan) {
     pre.push(`printf '%s' ${sq(uc)} > /boot/firmware/userconf.txt`);
     pre.push('chmod 600 /boot/firmware/userconf.txt 2>/dev/null || true');
   }
+  // QConnect: the card recipe. When a plan carries one, the card gets the
+  // QConnect scripts, units and its own provision.json, and provisions itself
+  // on first power-up (cable -> Wi-Fi -> AT&T cellular -> saved hotspot, then
+  // the setup hotspot if a human is needed). Plans without it are unchanged.
+  if (p.qconnect) {
+    pre.push(...require('./qconnect-payload').qconnectSteps(p.qconnect));
+  }
   return firstRunScript({
     networks: p.networks, country: p.country, tz: p.tz, piUser: p.piUser,
     piPassHash: p.piPassHash, hostname: p.hostname, preSteps: pre,
@@ -808,6 +815,10 @@ function bootFilesFor(plan) {
   // Only when a key is provided (a reusable, tagged Tailscale key configured in the flasher).
   if (plan.tsAuthKey) {
     files.push({ path: 'autopost-tailscale.env', content: tailscaleEnv({ tsAuthKey: plan.tsAuthKey, tsHostname: plan.tsHostname || plan.hostname }), mode: 0o600 });
+  }
+  // The QConnect payload, so the dry-run preview shows exactly what the card gets.
+  if (plan.qconnect) {
+    files.push(...require('./qconnect-payload').qconnectBootFiles(plan.qconnect));
   }
   return files; // cmdline.txt + config.txt are PATCHED in place by the writer (read existing -> *Patched -> write)
 }

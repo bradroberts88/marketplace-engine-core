@@ -273,3 +273,50 @@ export const stopRollout = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ----------------------------------------------------------------- card keys
+// One remote-access key per card. The screen shows which key went onto which
+// box, how long it has left, and lets an administrator retire one.
+export type CardKeyState =
+  | "ok"
+  | "expiring soon"
+  | "expired"
+  | "revoked"
+  | "unrecorded"
+  | "no expiry recorded";
+
+export type CardKey = {
+  device_id: string;
+  dealer_id: string | null;
+  tailscale_ip: string | null;
+  tailscale_key_id: string | null;
+  tailscale_key_issued_at: string | null;
+  tailscale_key_expires_at: string | null;
+  tailscale_key_revoked_at: string | null;
+  registered_at: string | null;
+  last_seen_at: string | null;
+  key_state: CardKeyState;
+  days_left: number | null;
+};
+
+export const listCardKeys = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("qconnect_keys")
+      .select("*")
+      .order("tailscale_key_expires_at", { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return rows<CardKey>(data);
+  });
+
+export const revokeCardKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ deviceId: z.string().min(1) }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("qconnect_mark_key_revoked", {
+      p_device_id: data.deviceId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

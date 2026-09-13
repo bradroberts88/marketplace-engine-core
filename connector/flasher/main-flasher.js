@@ -232,6 +232,41 @@ function buildPlan(form) {
       const v = String(form.devSshPubKey || process.env.AUTOPOST_DEV_SSH_PUBKEY || '').replace(/[\r\n]+/g, ' ').trim();
       return /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp\d+|sk-(ssh-ed25519|ecdsa-sha2-nistp\d+)@openssh\.com)\s+\S+/.test(v) ? v : '';
     })(),
+    // QCONNECT CARD RECIPE. Present whenever the operator (or bench-settings) has
+    // given the card an identity and a backend to register with. The card then
+    // provisions ITSELF on first power-up and finds its own way online - cable,
+    // Wi-Fi, AT&T mobile data, a saved phone hotspot - and raises its own setup
+    // page only when a human is genuinely needed. Absent, the card is written
+    // exactly as before.
+    qconnect: (() => {
+      const q = (form && form.qconnect) || {};
+      const env = process.env;
+      const cfg = {
+        deviceId: String(q.deviceId || env.QCONNECT_DEVICE_ID || '').trim(),
+        dealerId: String(q.dealerId || env.QCONNECT_DEALER_ID || form.dealership || '').trim(),
+        deviceToken: String(q.deviceToken || env.QCONNECT_DEVICE_TOKEN || '').trim(),
+        enrolmentTicket: String(q.enrolmentTicket || env.QCONNECT_ENROL_TICKET || '').trim(),
+        batchId: String(q.batchId || env.QCONNECT_BATCH_ID || '').trim(),
+        supabaseUrl: String(q.supabaseUrl || env.QCONNECT_SUPABASE_URL || '').trim(),
+        supabaseAnonKey: String(q.supabaseAnonKey || env.QCONNECT_SUPABASE_ANON_KEY || '').trim(),
+        wifiSsid: String(q.wifiSsid || (form.primary && form.primary.ssid) || '').trim(),
+        wifiPass: String(q.wifiPass || (form.primary && (form.primary.pass || form.primary.psk)) || ''),
+        wifiHidden: !!q.wifiHidden,
+        wifiCountry: String(q.wifiCountry || form.country || 'US').trim(),
+        hotspotSsid: String(q.hotspotSsid || env.QCONNECT_HOTSPOT_SSID || '').trim(),
+        hotspotPass: String(q.hotspotPass || env.QCONNECT_HOTSPOT_PASS || ''),
+        cellularApn: String(q.cellularApn || env.QCONNECT_APN || 'broadband').trim(),
+        cellularUser: String(q.cellularUser || env.QCONNECT_APN_USER || '').trim(),
+        cellularPass: String(q.cellularPass || env.QCONNECT_APN_PASS || ''),
+        // One key per card, never a shared fleet key: a reused key is why one box
+        // joined the tunnel and the next one silently did not.
+        tailscaleKey: String(q.tailscaleKey || '').trim(),
+        tailscaleKeyId: String(q.tailscaleKeyId || '').trim(),
+        tailscaleKeyExpiresAt: String(q.tailscaleKeyExpiresAt || '').trim(),
+        version: String(q.version || env.QCONNECT_VERSION || 'dev').trim(),
+      };
+      return cfg.deviceId && cfg.supabaseUrl ? cfg : null;
+    })(),
     imagePath: form.imagePath || defaultImagePath(form.piModel || DEFAULT_PI_MODEL),
     target: form.target || null, // { raw, size, ... } as picked
     // Opaque lane id from the renderer. Echoed on every progress event so N simultaneous writes can be told apart;

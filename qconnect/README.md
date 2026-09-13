@@ -24,6 +24,7 @@ qconnect/
   app/lib/email-templates/qconnect-alert.tsx  -> src/lib/email-templates/
   app/routes/_authenticated/alerts.tsx    -> src/routes/_authenticated/alerts.tsx
   app/routes/_authenticated/releases.tsx  -> src/routes/_authenticated/releases.tsx
+  app/routes/_authenticated/keys.tsx      -> src/routes/_authenticated/keys.tsx
   app/routes/api/public/qconnect-alert-emails.ts -> src/routes/api/public/
   release/make-release.sh              builds and signs an agent bundle
   app/routes/_authenticated/fleet.tsx  -> src/routes/_authenticated/fleet.tsx
@@ -114,7 +115,7 @@ clean, zero corruption in phase 3, and a clean burn-in are the gate before batch
 
 ## Installing into QConnect Fleet Manager
 
-- `supabase/install-all.sql` — files 01–09 concatenated in order, idempotent, apply as one migration.
+- `supabase/install-all.sql` — files 01–10 concatenated in order, idempotent, apply as one migration.
 - `docs/HANDOFF-FLEET-MANAGER.md` — the seven install steps, written against Fleet Manager's
   existing screens and migrations.
 - `docs/BENCH-RUNBOOK.md` — printable per-card runbook: prep, wireless, Ethernet, AT&T cellular,
