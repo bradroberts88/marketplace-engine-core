@@ -58,6 +58,10 @@ grant execute on function public.qconnect_heartbeat(text, text, jsonb) to anon;
 -- version must go: keeping both makes every call ambiguous ("function is not
 -- unique") and every card fails to register.
 drop function if exists public.qconnect_register(text, text, text, text);
+-- Older installs have a 4-argument qconnect_register; drop it so only the
+-- connection-aware signature remains (no ambiguous overloads).
+drop function if exists public.qconnect_register(text, text, text, text);
+
 create or replace function public.qconnect_register(
   p_device_id text, p_dealer_id text, p_device_token text, p_tailscale_ip text,
   p_connection_path text default null, p_connection_detail text default null,
