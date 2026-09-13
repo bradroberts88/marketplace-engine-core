@@ -32,6 +32,8 @@ log() { echo "[$(date '+%F %T')] $*"; }
 mkdir -p "$STATE"
 # shellcheck source=qconnect-netmanager.sh
 . "$QCONNECT/qconnect-netmanager.sh"
+# shellcheck source=qconnect-steps.sh
+. "$QCONNECT/qconnect-steps.sh"
 
 # The beacon the heartbeat picks up: which step are we stuck on right now.
 step() { echo "$1" > "$STATE/stuck_step"; log "--- step: $1"; }
