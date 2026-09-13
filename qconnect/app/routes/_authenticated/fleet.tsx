@@ -4,7 +4,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAudit, listFleet, setDeviceEnabled } from "@/lib/qconnect.functions";
+import {
+  listAudit,
+  listFleet,
+  setDeviceEnabled,
+  type FleetDevice,
+} from "@/lib/qconnect.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
