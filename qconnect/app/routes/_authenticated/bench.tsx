@@ -184,6 +184,10 @@ function BenchPage() {
         </p>
       </header>
 
+      <BatchTracker />
+
+
+
       {runId === null ? (
         <Card>
           <CardHeader>
