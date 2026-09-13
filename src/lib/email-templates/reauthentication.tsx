@@ -20,6 +20,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Preview>Your verification code</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Text style={brand}>Marketplace Engine Core</Text>
         <Heading style={h1}>Confirm reauthentication</Heading>
         <Text style={text}>Use the code below to confirm your identity:</Text>
         <Text style={codeStyle}>{token}</Text>
@@ -56,3 +57,12 @@ const codeStyle = {
   margin: '0 0 30px',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+
+const brand = {
+  fontSize: '13px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '1px',
+  textTransform: 'uppercase' as const,
+  color: '#ED5F18',
+  margin: '0 0 16px',
+}

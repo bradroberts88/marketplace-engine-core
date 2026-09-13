@@ -27,6 +27,7 @@ export const MagicLinkEmail = ({
     <Preview>Your login link for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Text style={brand}>{siteName}</Text>
         <Heading style={h1}>Your login link</Heading>
         <Text style={text}>
           Click the button below to log in to {siteName}. This link will expire
@@ -60,10 +61,10 @@ const text = {
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ED5F18',
   color: '#ffffff',
   fontSize: '14px',
-  border: '1px solid #000000',
+  border: '1px solid #ED5F18',
   borderRadius: '8px',
   padding: '12px 20px',
   textDecoration: 'none',
@@ -77,3 +78,12 @@ const darkModeCss = `
   [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
   [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
 `
+
+const brand = {
+  fontSize: '13px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '1px',
+  textTransform: 'uppercase' as const,
+  color: '#ED5F18',
+  margin: '0 0 16px',
+}

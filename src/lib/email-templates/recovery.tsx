@@ -27,6 +27,7 @@ export const RecoveryEmail = ({
     <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Text style={brand}>{siteName}</Text>
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
           We received a request to reset your password for {siteName}. Click
@@ -61,10 +62,10 @@ const text = {
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ED5F18',
   color: '#ffffff',
   fontSize: '14px',
-  border: '1px solid #000000',
+  border: '1px solid #ED5F18',
   borderRadius: '8px',
   padding: '12px 20px',
   textDecoration: 'none',
@@ -78,3 +79,12 @@ const darkModeCss = `
   [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
   [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
 `
+
+const brand = {
+  fontSize: '13px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '1px',
+  textTransform: 'uppercase' as const,
+  color: '#ED5F18',
+  margin: '0 0 16px',
+}

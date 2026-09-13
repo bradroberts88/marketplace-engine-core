@@ -37,6 +37,7 @@ export const EmailChangeEmail = ({
     <Preview>Confirm your email change for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <Text style={brand}>{siteName}</Text>
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
           You requested to change your email address for {siteName} from{' '}
@@ -82,10 +83,10 @@ const text = {
 }
 const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ED5F18',
   color: '#ffffff',
   fontSize: '14px',
-  border: '1px solid #000000',
+  border: '1px solid #ED5F18',
   borderRadius: '8px',
   padding: '12px 20px',
   textDecoration: 'none',
@@ -99,3 +100,12 @@ const darkModeCss = `
   [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
   [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
 `
+
+const brand = {
+  fontSize: '13px',
+  fontWeight: 'bold' as const,
+  letterSpacing: '1px',
+  textTransform: 'uppercase' as const,
+  color: '#ED5F18',
+  margin: '0 0 16px',
+}
