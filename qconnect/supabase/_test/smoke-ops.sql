@@ -190,4 +190,32 @@ begin
   end if;
 end $$;
 
+-- One key per card. A key inside the 14-day warning window must raise an alert
+-- while there is still time to rewrite the card, and the rotation screen must
+-- show the card's state in words an operator can act on.
+do $$
+declare v_state text; v_n integer;
+begin
+  perform public.qconnect_record_card_key('QCN-OPS-1', 'key-abc', now() + interval '5 days');
+  v_n := public.qconnect_worker_keys();
+  if v_n < 1 then
+    raise exception 'an expiring key raised no alert';
+  end if;
+  if not exists (select 1 from qconnect_alerts
+                  where device_id = 'QCN-OPS-1' and kind = 'key_expiring' and resolved_at is null) then
+    raise exception 'the expiring-key alert was not recorded';
+  end if;
+
+  select key_state into v_state from qconnect_keys where device_id = 'QCN-OPS-1';
+  if v_state is distinct from 'expiring soon' then
+    raise exception 'rotation screen shows %, expected expiring soon', coalesce(v_state, 'nothing');
+  end if;
+
+  perform public.qconnect_record_card_key('QCN-OPS-1', 'key-fresh', now() + interval '90 days');
+  select key_state into v_state from qconnect_keys where device_id = 'QCN-OPS-1';
+  if v_state is distinct from 'ok' then
+    raise exception 'after rewriting the card the key still reads %', v_state;
+  end if;
+end $$;
+
 select 'smoke-ops: all checks passed' as result;
