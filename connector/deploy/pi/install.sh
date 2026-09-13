@@ -90,7 +90,7 @@ chown -R autopost:autopost "$APP_DIR" "$DATA_DIR"
 
 # 4) systemd service (24/7 auto-start + restart-forever).
 cp "$(dirname "$0")/autopost-connector.service" "$SVC"
-cp "$(dirname "$0")/autopost-claim.service" /etc/systemd/system/autopost-claim.service 2>/dev/null || true
+# (autopost-claim.service retired; see attic/autopost-pi/.)
 # POLKIT rule — authorizes the unprivileged `autopost` user to drive nmcli. WITHOUT this the remote change-WiFi
 # path (agent onWifi -> set-wifi.sh) silently fails, which is the ONE lever we have when a box is on the wrong
 # network. (Bug found 2026-07-15: the rule file documented itself as installed here, but nothing copied it.)
@@ -102,10 +102,7 @@ if [ -f "$(dirname "$0")/50-autopost-nm.rules" ]; then
 fi
 systemctl daemon-reload 2>/dev/null || true   # (image-bake chroot has no running systemd — harmless to skip there)
 systemctl enable autopost-connector.service 2>/dev/null || true
-# SELF-CLAIM at first boot: double-gated by the unit itself (runs ONLY if config.json is absent AND a claim env
-# was dropped on the boot partition), so enabling it is safe for a pre-baked pilot box — it just no-ops there.
-# (Bug found 2026-07-15: the unit was copied but never enabled, so a shipped card would NEVER self-claim.)
-systemctl enable autopost-claim.service 2>/dev/null || true
+# SELF-CLAIM at first boot: RETIRED — replaced by QConnect self-registration (qconnect-setup.service).
 
 # 4b) WiFi-RECOVERY service — the on-device rescue when a box is flashed with the WRONG WiFi credentials. It is
 # headless with no internet, so there is no SSH/Tailscale/remote fix; this raises an "AutoPost-Setup" hotspot +
@@ -113,10 +110,7 @@ systemctl enable autopost-claim.service 2>/dev/null || true
 # box never claims) as the autopost user (nmcli authorized by the polkit rule above). The captive DNS conf makes
 # every phone auto-pop the setup page. See src/wifi-recovery.js.
 cp "$(dirname "$0")/autopost-wifi-recovery.service" /etc/systemd/system/autopost-wifi-recovery.service 2>/dev/null || true
-if [ -f "$(dirname "$0")/autopost-captive-dnsmasq.conf" ]; then
-  mkdir -p /etc/NetworkManager/dnsmasq-shared.d
-  cp "$(dirname "$0")/autopost-captive-dnsmasq.conf" /etc/NetworkManager/dnsmasq-shared.d/autopost-captive.conf
-fi
+# (The old AutoPost captive-portal DNS conf is retired; QConnect writes its own wildcard rule.)
 # NetworkManager's AP "shared" mode (ipv4.method=shared) needs dnsmasq-base to hand out DHCP + DNS on the setup AP;
 # a minimal Pi OS Lite image may lack it, and without it the recovery AP raises but no phone can get an IP or reach
 # the portal. Install the -base package ONLY (the full `dnsmasq` package runs a conflicting daemon on :53).
@@ -129,83 +123,8 @@ fi
 systemctl daemon-reload 2>/dev/null || true
 systemctl enable autopost-wifi-recovery.service 2>/dev/null || true
 
-# 4c) BLUETOOTH SETUP service - the REDUNDANT front door onto the same rescue.
-# The WiFi rescue above needs the WiFi radio, and the Pi has exactly one: it cannot host the setup AP and test
-# the real network at the same time, so there are always windows where the "AutoPost-Setup" network is not in
-# the air. Every field report of "we watched the WiFi list for twenty minutes and it never appeared" lands in
-# that gap. Bluetooth is a separate controller with its own link layer, so this channel is reachable while the
-# WiFi radio is scanning, associating, failing, hosting the AP, or torn down mid-probe. It writes a request file
-# that wifi-recovery.js applies - it never drives nmcli itself. See deploy/pi/autopost-ble-setup.py.
-if [ "${SKIP_BLE:-0}" != 1 ]; then
-  # python3-dbus + python3-gi are the BlueZ GATT path (the one BlueZ itself documents and ships examples for).
-  # bluez brings bluetoothd; pi-bluetooth carries the hciuart attach that the Pi Zero W's UART-attached radio
-  # needs before an adapter exists at all.
-  # FORCE THE RASPBERRY PI ARCHIVE ONTO HTTPS BEFORE ANY FETCH.
-  # Raspberry Pi OS ships its own archive as PLAIN HTTP. Filtering appliances on corporate/retail networks
-  # routinely intercept that: a Meraki on this build network answers archive.raspberrypi.com with a 302 to
-  # blocked.cgi and a ~3KB HTML page. apt does not see a block - it sees a .deb of the wrong length, and reports
-  # "File has unexpected size (3010 != 5488). Mirror sync in progress?", which sends you to look at the mirror.
-  # The mirror is fine. HTTPS is not interceptable the same way and was verified to pass straight through, so
-  # rewrite the sources rather than teaching every future builder to recognise that error.
-  # Idempotent, and deb.debian.org is deliberately left alone - it is not the one being filtered, and rewriting
-  # sources nobody complained about is how you break somebody's internal mirror.
-  for SRC in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
-    [ -f "$SRC" ] || continue
-    grep -q 'http://archive.raspberrypi.com' "$SRC" 2>/dev/null || continue
-    sed -i 's|http://archive\.raspberrypi\.com|https://archive.raspberrypi.com|g' "$SRC"
-    echo "[install] switched $(basename "$SRC") to https (plain HTTP to the Pi archive is commonly intercepted)"
-  done
-  # apt speaks HTTPS natively since 1.5, but it still needs the trust store to verify the certificate.
-  dpkg -s ca-certificates >/dev/null 2>&1 || apt-get install -y ca-certificates || true
-
-  # REFRESH THE INDEX FIRST. The stock image ships a months-old apt index, and this is the first place install.sh
-  # actually fetches a .deb (node comes over curl, and dnsmasq-base is normally already present), so nothing had
-  # ever exercised it. A stale index points at package VERSIONS the mirror has since replaced, which apt reports
-  # as "File has unexpected size (3011 != 5488). Mirror sync in progress?" - confusing, because the mirror is
-  # fine and the index is what is wrong. Non-fatal: an offline build should still get as far as it can.
-  apt-get update -y >/dev/null 2>&1 || echo "[install] WARN: apt-get update failed - package installs may use a stale index"
-
-  # ESSENTIAL vs OPTIONAL, in SEPARATE transactions. apt installs a transaction atomically, so one unavailable
-  # package takes the whole set down with it - which is exactly what happened on the first bake: pi-bluetooth
-  # failed to fetch and dragged python3-dbus and python3-gi down with it, leaving an image whose BLE channel
-  # could not start. An optional package must never be able to do that to a required one.
-  BLE_ESSENTIAL=""
-  for pkg in bluez python3-dbus python3-gi; do
-    dpkg -s "$pkg" >/dev/null 2>&1 || BLE_ESSENTIAL="$BLE_ESSENTIAL $pkg"
-  done
-  if [ -n "$BLE_ESSENTIAL" ]; then
-    echo "[install] installing Bluetooth setup deps:$BLE_ESSENTIAL"
-    apt-get install -y $BLE_ESSENTIAL       || { echo "[install] retrying Bluetooth deps individually after a fresh index"
-           apt-get update -y >/dev/null 2>&1 || true
-           for pkg in $BLE_ESSENTIAL; do
-             apt-get install -y --fix-missing "$pkg" || echo "[install] WARN: $pkg could not be installed"
-           done; }
-  fi
-
-  # pi-bluetooth carries the hciuart attach that a UART-connected radio (Pi Zero W, Pi 3, Pi 4) needs before an
-  # adapter exists at all. Its own transaction, so a fetch failure here cannot cost us the packages above. It
-  # only exists in the Raspberry Pi archive; absent from the archive entirely is not an error.
-  if apt-cache show pi-bluetooth >/dev/null 2>&1 && ! dpkg -s pi-bluetooth >/dev/null 2>&1; then
-    echo "[install] installing pi-bluetooth (hciuart: attaches the UART-connected Bluetooth radio)"
-    apt-get install -y pi-bluetooth       || { apt-get update -y >/dev/null 2>&1 || true; apt-get install -y --fix-missing pi-bluetooth; }       || echo "[install] WARN: pi-bluetooth failed - without hciuart the Bluetooth adapter may never appear"
-  fi
-  install -m 0644 "$(dirname "$0")/60-autopost-bluez.conf" /etc/dbus-1/system.d/60-autopost-bluez.conf 2>/dev/null     || echo "[install] WARN: could not install the BlueZ D-Bus policy"
-  # The service runs unprivileged; group membership is the distro's own route to org.bluez and the D-Bus policy
-  # above is the belt to its braces. Either alone is enough; both means an OS bump cannot quietly break it.
-  getent group bluetooth >/dev/null 2>&1 && usermod -aG bluetooth autopost 2>/dev/null || true
-  install -m 0644 "$(dirname "$0")/autopost-ble-setup.service" /etc/systemd/system/autopost-ble-setup.service 2>/dev/null     || echo "[install] WARN: could not install autopost-ble-setup.service"
-  # A card with the Bluetooth radio disabled in config.txt would run this service against an adapter that never
-  # appears. Warn loudly rather than shipping a rescue channel that cannot work.
-  for CFG in /boot/firmware/config.txt /boot/config.txt; do
-    [ -f "$CFG" ] || continue
-    grep -qE '^[[:space:]]*dtoverlay=(disable-bt|pi3-disable-bt)' "$CFG" 2>/dev/null       && echo "[install] WARN: $CFG disables Bluetooth (dtoverlay=disable-bt) - the BLE rescue channel cannot work on this card"
-  done
-  systemctl daemon-reload 2>/dev/null || true
-  systemctl enable bluetooth.service 2>/dev/null || true
-  systemctl enable hciuart.service 2>/dev/null || true   # Pi Zero W / Pi 3: attaches the UART-connected radio
-  systemctl enable autopost-ble-setup.service 2>/dev/null || true
-  echo "[install] Bluetooth setup channel installed (device name: AutoPost-Setup-<last 4 of serial>)"
-fi
+# 4c) Bluetooth onboarding channel: RETIRED. Card onboarding is now the QConnect captive portal
+#     (qconnect/device/qconnect-portal.py). The old BLE channel lives in attic/autopost-pi/ and is not installed.
 
 # 5) Tailscale — super-admin remote terminal / reach, behind any NAT, no port-forwarding.
 #    Auth non-interactively at imaging time:  TS_AUTHKEY=tskey-... sudo bash install.sh
