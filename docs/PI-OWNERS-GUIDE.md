@@ -138,9 +138,9 @@ If you need to unplug the Pi, just pull the power plug. That is always safe.
 uses Wi-Fi and you moved beyond your Wi-Fi's reach, set it up again with the
 steps in Option B.
 
-**Sending it back:** unplug the power, pack the Pi and its cables, and tell the
-person who shipped it that it is on its way back — this stops our dashboard from
-raising a "missing device" alert while it travels.
+**Sending it back:** unplug the power, pack the Pi and its cables, and tell QCAI
+Support it is on its way back — this stops our dashboard from raising a "missing
+device" alert while it travels.
 
 ## 9. Who to contact
 
