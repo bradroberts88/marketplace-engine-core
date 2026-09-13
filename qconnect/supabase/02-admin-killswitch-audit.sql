@@ -29,6 +29,11 @@ revoke execute on function public.qconnect_dealer_id() from anon;
 grant execute on function public.qconnect_dealer_id() to authenticated;
 
 -- ---------------------------------------------------------------- audit log
+-- Fleet Manager compatibility: older installs have a VIEW named qconnect_audit
+-- over a qconnect_audit_log table. Drop the view so the real table can take
+-- the name; its rows are carried forward below.
+drop view if exists public.qconnect_audit;
+
 create table if not exists public.qconnect_audit (
   id          bigint generated always as identity primary key,
   actor_id    uuid,
@@ -38,6 +43,30 @@ create table if not exists public.qconnect_audit (
   detail      jsonb not null default '{}'::jsonb,
   created_at  timestamptz not null default now()
 );
+
+-- Columns matching the legacy Fleet Manager audit view, so its dashboard
+-- keeps working unchanged against this table.
+alter table public.qconnect_audit add column if not exists actor_role text;
+alter table public.qconnect_audit add column if not exists dealer_id  text;
+alter table public.qconnect_audit add column if not exists at timestamptz
+  generated always as (created_at) stored;
+
+-- Carry legacy rows forward (once; guarded so re-runs do not duplicate).
+do $$
+begin
+  if to_regclass('public.qconnect_audit_log') is not null then
+    insert into public.qconnect_audit (actor_email, actor_role, device_id, action, dealer_id, created_at)
+    select l.actor_email, l.actor_role, l.device_id, l.action, l.dealer_id, l.at
+      from public.qconnect_audit_log l
+     where not exists (
+       select 1 from public.qconnect_audit a
+        where a.created_at = l.at
+          and a.device_id is not distinct from l.device_id
+          and a.action = l.action
+     );
+  end if;
+end $$;
+
 create index if not exists qconnect_audit_device_idx on public.qconnect_audit (device_id, created_at desc);
 
 alter table public.qconnect_audit enable row level security;
