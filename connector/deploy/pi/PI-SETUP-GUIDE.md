@@ -172,7 +172,7 @@ the tunnel hub and Tailscale — plus the device's uptime when it returns:
 | down | **NO** | **low** (`up 0 min` after it returns) | **Power was lost** — it rebooted when power came back | On-site: check the power brick / the site's power. Reps held safely the whole time. |
 | down | **NO** | **high** (never rebooted) | **Internet lost** — device stayed up but couldn't reach us | On-site: check the dealership WiFi / router / ISP. |
 
-Proven behaviour (power-cut test 2026-07-12):
+Proven behaviour (power-cut test 07/12/2026):
 - **Fail-closed while down:** a rep request through the tunnel returns nothing (HTTP `000`) — **no egress, never a wrong IP**. Reps just hold + retry.
 - **Auto-recovery:** on power restore the Pi boots (~1-2 min) and the connector reconnects on its own — no touch (verified: down 23:41 → reconnected 23:44, clean boot, no corruption).
 - Fully telling "power off" apart from "total internet loss" while the device is unreachable needs either a UPS that signals power-loss before dying, or the dealership confirming (LEDs off = power; their other devices offline = internet). Tailscale reachability + reconnect-uptime narrow it — see the super-admin TODO in the roadmap.
@@ -184,4 +184,4 @@ Proven behaviour (power-cut test 2026-07-12):
 4. Verify **Live** + a geo-checked test post, run the power-cut checks, enable the read-only rootfs.
 5. Ship. They plug in power. Point their reps at the tunnel + un-pause once the FB session is confirmed.
 
-_Last updated: 2026-08-02 (added Health & analytics: live vitals + why-offline verdict)._
+_Last updated: 09/13/2026._

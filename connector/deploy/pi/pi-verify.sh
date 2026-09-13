@@ -53,7 +53,7 @@ else
   fail "svc-active:autopost-wifi-recovery" "not running - a wrong-WiFi unit would be unrecoverable without a truck roll"
 fi
 
-# ---------------------------------------------------------------- the PMF fix (the 2026-08-14 AP bug)
+# ---------------------------------------------------------------- the PMF fix (the 08/14/2026 AP bug)
 WR=/opt/autopost/connector/src/wifi-recovery.js
 if [ -f "$WR" ]; then
   if grep -q "wifi-sec.pmf" "$WR"; then

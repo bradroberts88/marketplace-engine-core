@@ -2,7 +2,7 @@
 
 > **Standalone. Does NOT import from `../../production` and is NOT wired into the VPS/pm2 stack.**
 > This is the VPS-side counterpart to the connector agent in `../` (`desktop-connector/src/agent.js`).
-> Proven end-to-end locally on 2026-07-04 (see the smoke test below).
+> Proven end-to-end locally on 07/04/2026 (see the smoke test below).
 
 ## What it does
 A rep's GoLogin session points its proxy (`custom_proxy = host:port:user:pass`) at this server's **fail-closed

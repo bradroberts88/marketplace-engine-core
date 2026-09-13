@@ -1,6 +1,6 @@
 # Pi connection defect register
 
-Every defect found in the 13/09/2026 connection review, in one list, with where
+Every defect found in the 09/13/2026 connection review, in one list, with where
 it stands in the code as it exists today. Each entry was re-checked against the
 current files before its status was written — nothing here is marked fixed from
 memory.

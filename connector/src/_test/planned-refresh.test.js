@@ -2,7 +2,7 @@
 /*
  * plannedRefreshDecision — the pre-cap link-refresh gate in src/agent.js.
  *
- * WHY THIS EXISTS (2026-08-17 field logs). The gate used to be `streams.size > 0 => wait`. A rep's browser holds
+ * WHY THIS EXISTS (08/17/2026 field logs). The gate used to be `streams.size > 0 => wait`. A rep's browser holds
  * HTTP keep-alive sockets to Facebook open for the WHOLE session, so the socket count never fell back to 0 while
  * anyone was working: the refresh only ran when nobody was posting, the link aged into the ~600s dealership
  * middlebox cap, and the middlebox severed it mid-session. The logs show four such cuts at ~10m13s of link age
@@ -23,7 +23,7 @@ const m = src.match(/--- BEGIN plannedRefreshDecision[^\n]*\n([\s\S]*?)\n\/\/ --
 if (!m) {
   console.error('FAIL: could not find the plannedRefreshDecision markers in src/agent.js.');
   console.error('      If the function was renamed or the markers removed, update this test deliberately —');
-  console.error('      do not delete it: it is the only guard on the gate that caused the 2026-08-17 cuts.');
+  console.error('      do not delete it: it is the only guard on the gate that caused the 08/17/2026 cuts.');
   process.exit(1);
 }
 // eslint-disable-next-line no-new-func
@@ -53,7 +53,7 @@ check('idle refresh is not flagged as forced',
 
 // --- THE BUG: keep-alive sockets open but no bytes moving must count as idle ----------------------------------
 const lull = at(120000, { streamCount: 8, sinceByteMs: 6000 });
-check('8 keep-alive sockets open but byte-quiet 6s => refresh (the 2026-08-17 fix)',
+check('8 keep-alive sockets open but byte-quiet 6s => refresh (the 08/17/2026 fix)',
   lull.refresh === true, 'this is exactly the case the old streams.size gate refused to refresh on');
 check('a quiet-window refresh is not forced', lull.forced === false);
 

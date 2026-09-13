@@ -1,6 +1,6 @@
 # Why some Pis connect and some don't — full defect review
 
-Date: 2026-09-13. Scope: `qconnect/` (the new zero-touch kit) and `connector/` (the AutoPost
+Date: 09/13/2026. Scope: `qconnect/` (the new zero-touch kit) and `connector/` (the AutoPost
 claim/tunnel path). Findings are ordered by how likely they are to explain a card that looks
 identical to a working one and never comes online.
 

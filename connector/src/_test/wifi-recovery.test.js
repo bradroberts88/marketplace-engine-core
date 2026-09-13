@@ -212,7 +212,7 @@ tasks.push(at('startAp ROLLBACK: if the AP never gets a gateway IP, station auto
   assert.notStrictEqual(h.rec.state.phase, 'ap', 'does NOT latch into ap phase');
   assert.ok(h.calls.some((c) => c.includes('connection.autoconnect yes')), 'station autoconnect restored on rollback');
 }));
-// REGRESSION (hardware-confirmed 2026-08-14, Pi Zero W / BCM43430 fw 7.45.98): the AP profile MUST disable PMF.
+// REGRESSION (hardware-confirmed 08/14/2026, Pi Zero W / BCM43430 fw 7.45.98): the AP profile MUST disable PMF.
 // Without `wifi-sec.pmf 1`, NetworkManager defaults to PMF-optional and offers key_mgmt "WPA-PSK WPA-PSK-SHA256".
 // That chip's firmware does not support SHA256 key management in AP MODE, so the kernel rejects the key
 // ("nl80211: kernel reports: key setting validation failed"), wpa_supplicant cannot initialise the AP interface,
@@ -228,7 +228,7 @@ tasks.push(at('startAp DISABLES PMF on the rescue AP (BCM43430 cannot do WPA-PSK
   assert.ok(/wifi-sec\.pmf 1/.test(sec),
     'MUST pass `wifi-sec.pmf 1` in the SAME modify call — without it NM negotiates WPA-PSK-SHA256 and the AP never comes up');
 }));
-// REGRESSION (hardware-confirmed 2026-08-14): the 5-minute re-probe tore the AP down for ~100s out of every
+// REGRESSION (hardware-confirmed 08/14/2026): the 5-minute re-probe tore the AP down for ~100s out of every
 // 5 minutes REGARDLESS of whether anyone was on the portal. Measured live: a phone connected at 21:20:06 was
 // disconnected at 21:22:46, mid-session. It also leaves the SSID in the phone's cached scan list after the AP is
 // gone, so tapping it gives "unable to join network" - the exact field symptom. The probe must defer while the

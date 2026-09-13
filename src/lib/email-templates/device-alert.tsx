@@ -91,7 +91,7 @@ export const template = {
     severity: 'critical',
     message: 'This card has not checked in for over an hour',
     detail: 'Last seen on Wi-Fi. Check power and the internet connection.',
-    occurredAt: '13/09/2026 07:30',
+    occurredAt: '09/13/2026 07:30',
   },
   to: 'support@quantumconnectai.com',
 } satisfies TemplateEntry

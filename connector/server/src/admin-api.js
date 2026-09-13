@@ -102,7 +102,7 @@ function createAdminApi({ hub, store, token, claimBaseUrl = null, agentBuildPath
         return send(ok ? 200 : 409, { ok, dealershipId: id, detail: ok ? 'restart sent' : 'agent not connected' });
       }
       // ---- DATA-PLANE SELF-TEST (watchdog): does this agent actually open a socket to Facebook right now? ----
-      // Catches a WEDGED agent (control channel live, but far-sockets dead — the 2026-07-13 failure). The watchdog
+      // Catches a WEDGED agent (control channel live, but far-sockets dead — the 07/13/2026 failure). The watchdog
       // polls this and restarts the agent when it fails; live=true alone is NOT proof the tunnel carries traffic.
       if (req.method === 'POST' && (m = /^\/admin\/selftest\/([^/]+)$/.exec(url))) {
         const id = decodeURIComponent(m[1]);

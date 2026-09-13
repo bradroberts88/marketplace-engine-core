@@ -1,6 +1,6 @@
 'use strict';
 /*
- * CONFIG RESILIENCE — the 2026-08-30 field failure, pinned.
+ * CONFIG RESILIENCE — the 08/30/2026 field failure, pinned.
  *
  * A unit was unplugged to be moved between sites. The power cut landed inside the writeback window of a
  * config.json rewrite, so ext4 gave back a ZERO-LENGTH file. On arrival the unit had perfect internet and was

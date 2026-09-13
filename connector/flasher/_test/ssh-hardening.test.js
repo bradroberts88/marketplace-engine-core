@@ -1,6 +1,6 @@
 'use strict';
 /*
- * SSH hardening + secret-leak guards (2026-08-21).
+ * SSH hardening + secret-leak guards (08/21/2026).
  *
  * Three defects were verified on a shipped image before these landed:
  *   1. the real fleet SSH password sat in plaintext in flasher/_test fixtures that were copied onto EVERY Pi,

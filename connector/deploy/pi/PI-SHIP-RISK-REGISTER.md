@@ -1,4 +1,4 @@
-# Pi shipping risk register (from the 2026-07-14 deep analysis: 12 domains, 175 risks, 24 gates verified)
+# Pi shipping risk register (from the 07/14/2026 deep analysis: 12 domains, 175 risks, 24 gates verified)
 
 ## Executive finding
 The connector SOFTWARE is genuinely strong (half-open detection, planned pre-cap reconnect, self-heal,

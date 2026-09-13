@@ -20,7 +20,7 @@ echo "[install] AutoPost connector -> Raspberry Pi"
 
 # 1) Node 18+ (NodeSource keeps Pi/arm64 current; skip if a good node is already present).
 #    NodeSource's setup_20.x repo has DROPPED 32-bit ARM entirely ("Unsupported architecture: armhf. Only amd64,
-#    arm64 are supported" — confirmed 2026-08-12), which is why it fails on the original Pi Zero W / Pi 1
+#    arm64 are supported" — confirmed 08/12/2026), which is why it fails on the original Pi Zero W / Pi 1
 #    (BCM2835, ARM1176JZF-S = ARMv6, armhf userspace). Detect via `dpkg --print-architecture` rather than
 #    `uname -m` — under qemu-user emulation (e.g. building the golden image in a chroot) uname reports the
 #    emulated CPU model, not the actual armhf userspace, so it's not reliable here. On armhf, pull the same
@@ -93,7 +93,7 @@ cp "$(dirname "$0")/autopost-connector.service" "$SVC"
 cp "$(dirname "$0")/autopost-claim.service" /etc/systemd/system/autopost-claim.service 2>/dev/null || true
 # POLKIT rule — authorizes the unprivileged `autopost` user to drive nmcli. WITHOUT this the remote change-WiFi
 # path (agent onWifi -> set-wifi.sh) silently fails, which is the ONE lever we have when a box is on the wrong
-# network. (Bug found 2026-07-15: the rule file documented itself as installed here, but nothing copied it.)
+# network. (Bug found 07/15/2026: the rule file documented itself as installed here, but nothing copied it.)
 if [ -f "$(dirname "$0")/50-autopost-nm.rules" ]; then
   mkdir -p /etc/polkit-1/rules.d
   cp "$(dirname "$0")/50-autopost-nm.rules" /etc/polkit-1/rules.d/50-autopost-nm.rules
@@ -251,7 +251,7 @@ echo "[install]   start:  sudo systemctl start autopost-connector   |   re-test:
 
 # A DEFECTIVE unit must not look like a successful install. Previously the burn-in failure was swallowed by
 # `|| echo` and install.sh still exited 0 — so an automated/VA flow would happily box a bad Pi. Exit non-zero so
-# the caller (and the flasher app) can HARD-STOP. (Bug found 2026-07-15.)
+# the caller (and the flasher app) can HARD-STOP. (Bug found 07/15/2026.)
 if [ "$BURNIN_RC" != 0 ]; then
   echo "[install] ⛔ BURN-IN FAILED — DO NOT SHIP this unit (fix/replace + re-run: sudo autopost-selftest)." >&2
   exit "$BURNIN_RC"

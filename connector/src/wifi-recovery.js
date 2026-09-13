@@ -69,7 +69,7 @@ const CONFIG = {
   // The single radio cannot be AP and station at once, so re-testing the real network means taking the rescue
   // AP down. Every second it is down is a second a dealership tech cannot connect — and worse, their phone
   // still SHOWS the SSID from its cached scan, so tapping it fails with "unable to join network".
-  // Measured on hardware 2026-08-14 with the old values (probe 300s / wait 90s): the AP was actually gone for
+  // Measured on hardware 08/14/2026 with the old values (probe 300s / wait 90s): the AP was actually gone for
   // ~100s out of every 300s. A THIRD of the time the rescue network did not exist.
   // These values invert that: a probe every 15 min, and a probe window of 25s (see the early-exit in
   // probeRealNetwork, which usually returns far sooner). ~25s unavailable per 900s = under 3%.
@@ -608,7 +608,7 @@ function createRecovery(deps = {}) {
       // ("nl80211: kernel reports: key setting validation failed"), wpa_supplicant cannot initialise the AP
       // interface, and NM fails the activation with supplicant-timeout after ~25s. startAp() then correctly
       // rolls back — which presented as "the recovery AP never starts" on every wrong-WiFi Zero W.
-      // Confirmed on hardware 2026-08-14: identical profile activates in <1s with pmf=1 and gets its
+      // Confirmed on hardware 08/14/2026: identical profile activates in <1s with pmf=1 and gets its
       // 10.42.0.1 shared-mode gateway; without it, it never comes up. Safe on newer radios too — the AP is a
       // transient, on-site rescue network, so dropping PMF costs nothing operationally.
       await nmcli(['connection', 'modify', cfg.apConName, 'wifi-sec.key-mgmt', 'wpa-psk', 'wifi-sec.psk', cfg.apPassword, 'wifi-sec.pmf', '1']);
@@ -1197,7 +1197,7 @@ function createRecovery(deps = {}) {
       if (nowFn() - (state.apSince || 0) >= probeEvery) {
         // DO NOT yank the AP out from under someone who is using it. The re-probe exists to self-heal a
         // transient router outage on an UNATTENDED box; when a human is actually on the portal it is pure harm.
-        // Measured on hardware 2026-08-14: the probe takes the AP down for ~100s out of every 5 minutes, which
+        // Measured on hardware 08/14/2026: the probe takes the AP down for ~100s out of every 5 minutes, which
         // (a) disconnects a phone mid-form, and (b) leaves the SSID showing in the phone's cached scan list, so
         // tapping it gives "unable to join network" - the exact symptom reported from the field.
         const busy = await portalInUse();

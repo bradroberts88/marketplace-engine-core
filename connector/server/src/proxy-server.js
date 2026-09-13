@@ -24,7 +24,7 @@ const OPEN_TIMEOUT_MS = 15000;
 // refuses after the grace (and never falls back to this host's own network). The happy path returns the instant
 // the agent is live again, so this adds latency only during a real reconnect.
 //
-// RAISED 8s -> 15s (2026-08-17). The old 8s was sized for the "2-7s" estimate above, but the real unplanned gaps
+// RAISED 8s -> 15s (08/17/2026). The old 8s was sized for the "2-7s" estimate above, but the real unplanned gaps
 // measured in the field were 8-9s — landing exactly ON the limit, so reps were still collecting 503s for a few
 // seconds after every middlebox cut. 15s covers the measured gap plus one backoff retry. The cost of being too
 // generous is small and one-sided: this only delays how fast a genuinely-offline dealership reports as offline,
