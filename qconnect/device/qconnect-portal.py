@@ -230,11 +230,14 @@ FORM = """
 <h1>QConnect Setup</h1>
 <div class="sub">Device {dev}</div>
 {error}
+{nmwarn}
 <div class="status">
   <div><span>Network cable</span><b>{eth}</b></div>
   <div><span>Mobile modem</span><b>{modem}</b></div>
+  <div><span>Network service</span><b>{nmstate}</b></div>
   <div><span>Last problem</span><b>{reason}</b></div>
 </div>
+{history}
 <div class="sub">Plugging in a network cable is the fastest fix and needs nothing below.
 Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</div>
 <form method="POST" action="/setup">
@@ -251,6 +254,9 @@ Otherwise pick the dealership Wi-Fi, or set the AT&T APN if a modem is fitted.</
   <label>Or type another APN</label>
   <input name="cellular_apn_manual" placeholder="e.g. m2m.com.attz" value="{apn_manual}">
   <button type="submit">Connect</button>
+</form>
+<form method="POST" action="/retry">
+  <button type="submit" style="background:#2c3a55">Retry with what is already saved</button>
 </form>
 """
 
