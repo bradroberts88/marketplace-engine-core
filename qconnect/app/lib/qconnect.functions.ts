@@ -7,14 +7,33 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type ConnectionPath = "ethernet" | "wifi" | "cellular" | "hotspot" | "none";
+
+export type FleetHealth =
+  | "healthy"
+  | "weak_signal"
+  | "offline"
+  | "disabled"
+  | "never_checked_in"
+  | `stuck_${string}`;
+
 export type FleetDevice = {
   device_id: string;
   dealer_id: string;
   tailscale_ip: string | null;
   enabled: boolean;
   online: boolean;
+  health: FleetHealth;
   registered_at: string | null;
+  first_seen_at: string | null;
   last_seen_at: string | null;
+  connection_path: ConnectionPath | null;
+  connection_detail: string | null;
+  link_quality: number | null;
+  pi_model: string | null;
+  agent_version: string | null;
+  stuck_step: string | null;
+  last_error: string | null;
   last_status: {
     temp_c?: number;
     disk_free_mb?: number;
