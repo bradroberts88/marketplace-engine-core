@@ -82,24 +82,32 @@ create view public.qconnect_keys as
   select d.device_id,
          d.dealer_id,
          d.tailscale_ip,
-         d.tailscale_key_id,
-         d.tailscale_key_issued_at,
-         d.tailscale_key_expires_at,
+         -- A card that enrolled itself may carry the key details on its
+         -- enrolment ticket rather than on the device row; show either.
+         coalesce(d.tailscale_key_id, e.tailscale_key_id) as tailscale_key_id,
+         coalesce(d.tailscale_key_issued_at, e.created_at) as tailscale_key_issued_at,
+         coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) as tailscale_key_expires_at,
          d.tailscale_key_revoked_at,
          d.registered_at,
          d.last_seen_at,
          case
            when d.tailscale_key_revoked_at is not null then 'revoked'
-           when d.tailscale_key_id is null             then 'unrecorded'
-           when d.tailscale_key_expires_at is null     then 'no expiry recorded'
-           when d.tailscale_key_expires_at < now()     then 'expired'
-           when d.tailscale_key_expires_at < now() + interval '14 days' then 'expiring soon'
+           when coalesce(d.tailscale_key_id, e.tailscale_key_id) is null then 'unrecorded'
+           when coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) is null then 'no expiry recorded'
+           when coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) < now() then 'expired'
+           when coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) < now() + interval '14 days' then 'expiring soon'
            else 'ok'
          end as key_state,
-         case when d.tailscale_key_expires_at is null then null
-              else greatest(0, date_part('day', d.tailscale_key_expires_at - now()))::int
+         case when coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) is null then null
+              else greatest(0, date_part('day',
+                     coalesce(d.tailscale_key_expires_at, e.tailscale_key_expires_at) - now()))::int
          end as days_left
     from qconnect_devices d
+    left join lateral (
+      select * from qconnect_enrolments x
+       where x.device_id = d.device_id
+       order by x.created_at desc limit 1
+    ) e on true
    where public.qconnect_is_admin() or d.dealer_id = public.qconnect_dealer_id();
 grant select on public.qconnect_keys to authenticated;
 
