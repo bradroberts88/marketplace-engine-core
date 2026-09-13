@@ -70,7 +70,8 @@ $$;
 grant execute on function public.qconnect_heartbeat to anon;
 
 -- FINDING 1 FIX: offline view locked to logged-in dashboard users only.
-create or replace view public.qconnect_offline as
+drop view if exists public.qconnect_offline;
+create view public.qconnect_offline as
   select device_id, dealer_id, tailscale_ip, last_seen_at
   from qconnect_devices
   where enabled and (last_seen_at is null or last_seen_at < now() - interval '15 minutes');
