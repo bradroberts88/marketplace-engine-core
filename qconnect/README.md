@@ -65,7 +65,7 @@ rotate the batch key when a device is reported stolen.
 ## Verified
 
 `supabase/_test/run-local-tests.sh` runs all five files against a throwaway local Postgres — twice
-each, to prove they can be re-run safely — then a 17-check smoke test. Last run: all 17 passed.
+each, to prove they can be re-run safely — then a 17-check smoke test. Last run: all 17 passed on 13/09/2026.
 
 - token stored only as a fingerprint, plaintext column empty
 - wrong token rejected; unknown device rejected
