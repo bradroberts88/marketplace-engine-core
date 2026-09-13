@@ -54,7 +54,10 @@ end;
 $$;
 grant execute on function public.qconnect_heartbeat(text, text, jsonb) to anon;
 
--- Registration records the path the box used to get there.
+-- Registration records the path the box used to get there. The old 4-argument
+-- version must go: keeping both makes every call ambiguous ("function is not
+-- unique") and every card fails to register.
+drop function if exists public.qconnect_register(text, text, text, text);
 create or replace function public.qconnect_register(
   p_device_id text, p_dealer_id text, p_device_token text, p_tailscale_ip text,
   p_connection_path text default null, p_connection_detail text default null,
@@ -83,7 +86,9 @@ grant execute on function public.qconnect_register(text, text, text, text, text,
 
 -- Fleet view gains the connectivity columns plus a single plain-English
 -- health verdict the dashboard can show without any client-side logic.
-create or replace view public.qconnect_fleet as
+-- The column list changes, and Postgres refuses to re-shape a view in place.
+drop view if exists public.qconnect_fleet;
+create view public.qconnect_fleet as
   select device_id,
          dealer_id,
          tailscale_ip,

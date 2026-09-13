@@ -108,5 +108,5 @@ select case when health='healthy' and stuck_step is null and last_error is null
 from public.qconnect_fleet where device_id='QCN-TEST-001';
 
 -- Registration still refuses an unknown token, now on the wider signature.
-select case when public.qconnect_register('QCN-GHOST','d','nope','100.64.0.9','wifi','x','Pi 4') is null
+select case when public.qconnect_register('QCN-GHOST'::text,'d'::text,'nope'::text,'100.64.0.9'::text,'wifi'::text,'x'::text,'Pi 4'::text) is null
        then 'FAIL ghost registered' end;
