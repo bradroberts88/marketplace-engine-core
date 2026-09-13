@@ -74,10 +74,12 @@ each, to prove they can be re-run safely — then a 17-check smoke test. Last ru
 - fleet and offline views return nothing to an unscoped user, everything to an admin
 - kill switch writes an audit row with the actor's email
 - a disabled box is told `enabled=false` on its next check-in
-- a bench run seeds all 40 steps (including the 10-step connectivity phase); open or failed steps
+- a bench run seeds all 47 steps (including the connectivity and cellular/AT&T phases); open or failed steps
   give `no_go`, a clean sweep gives `go`
 - a heartbeat carrying connection path, signal and fault lands in real columns; the fleet view turns
   them into one health verdict, and a recovered box clears its own fault
+- AT&T SIM cards are the cellular default: APN falls back to `broadband`, with `m2m.com.attz` and
+  `att.mvno` selectable at the bench or from the rescue portal
 
 All card-side shell scripts pass `bash -n` and the captive portal passes a Python syntax check. They
 have not been run on physical hardware in this environment.
