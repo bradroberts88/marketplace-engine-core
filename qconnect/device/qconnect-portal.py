@@ -151,9 +151,47 @@ def modem_state():
         return "no modem"
 
 
+def netmanager_state():
+    """Is the thing that does all the connecting actually running?
+
+    Every nmcli call returns empty when NetworkManager is missing or dead, which
+    used to look identical to "there are no networks here". Say it plainly.
+    """
+    try:
+        out = subprocess.run(["nmcli", "-t", "-f", "RUNNING", "general"],
+                             capture_output=True, text=True, timeout=8).stdout
+        if "running" in out:
+            return True, "running"
+    except FileNotFoundError:
+        return False, "not installed on this card"
+    except Exception:
+        pass
+    try:
+        state = subprocess.run(["systemctl", "is-active", "NetworkManager"],
+                               capture_output=True, text=True, timeout=8).stdout.strip()
+    except Exception:
+        state = "unknown"
+    return False, state or "stopped"
+
+
+def recent_events(limit=5):
+    """The last few connection attempts, newest first, in plain words."""
+    rows = []
+    for line in reversed(read_text(EVENTS_LOG).splitlines()):
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        when = parts[0].replace("T", " ").rstrip("Z")
+        rows.append((when, REASONS.get(parts[1], parts[1])))
+        if len(rows) >= limit:
+            break
+    return rows
+
+
 def esc(s):
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace('"', "&quot;"))
+
 
 
 PAGE = """<!doctype html>
