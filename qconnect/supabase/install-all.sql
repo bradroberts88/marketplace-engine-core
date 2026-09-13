@@ -2336,3 +2336,4 @@ begin
 end;
 $$;
 revoke execute on function public.qconnect_run_workers() from anon, authenticated, public;
+
