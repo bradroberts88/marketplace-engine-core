@@ -111,3 +111,11 @@ clean, zero corruption in phase 3, and a clean burn-in are the gate before batch
 - a rollout aimed at one dealership reaches its boxes, and stopping it withdraws the offer
 - an update that never reports healthy is failed and alerted, and each alert is queued for exactly
   one email
+
+## Installing into QConnect Fleet Manager
+
+- `supabase/install-all.sql` — files 01–09 concatenated in order, idempotent, apply as one migration.
+- `docs/HANDOFF-FLEET-MANAGER.md` — the seven install steps, written against Fleet Manager's
+  existing screens and migrations.
+- `docs/BENCH-RUNBOOK.md` — printable per-card runbook: prep, wireless, Ethernet, AT&T cellular,
+  remote-fix proof, go/no-go.
