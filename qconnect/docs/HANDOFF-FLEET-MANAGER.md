@@ -77,11 +77,23 @@ unread alert badge.
 
 ## Step 5 — Email dispatcher
 
-Copy `qconnect/app/lib/email-templates/qconnect-alert.tsx` and
-`qconnect/app/routes/api/public/qconnect-alert-emails.ts`. Register the
-template in the project's template registry. The route drains
-`qconnect_pending_alert_emails()` and marks each sent, keyed per alert so a
-retry cannot double-send. Send one test alert to confirm it lands.
+The dispatcher lives in Marketplace Engine, not Fleet Manager: the
+`device-alert` email template and the route
+`/api/public/qconnect/device-alert` are built, tested and branded there. The
+route is locked with a shared secret (`QCONNECT_ALERT_SECRET`, already set in
+Marketplace Engine).
+
+In Fleet Manager: set a `QCONNECT_ALERT_SECRET` secret with a fresh value,
+then update the same-named secret in Marketplace Engine to match (values are
+never displayed, so generate in one place and copy into the other at creation
+time). The alerter worker POSTs each pending alert as JSON
+(`alertId`, `deviceId`, `alertType`, `severity`, `message`, optional
+`detail`/`occurredAt`) to
+`https://gain-craft-flow.lovable.app/api/public/qconnect/device-alert` with
+`Authorization: Bearer <secret>`, and marks the alert emailed on a 200. The
+send is deduplicated per `alertId`, so a retry cannot double-send. Alerts keep
+appearing on the dashboard regardless of email. Send one test alert to confirm
+it lands.
 
 ## Step 6 — Automatic pre-registration
 
