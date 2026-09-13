@@ -14,7 +14,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load all env vars into process.env for server routes only (the shared
 // config already injects VITE_* vars for client code — do not duplicate).
-const serverEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
+const serverEnv = loadEnv(process.env["NODE_ENV"] ?? "development", process.cwd(), "");
 Object.assign(process.env, serverEnv);
 
 export default defineConfig({
