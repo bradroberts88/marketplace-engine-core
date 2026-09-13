@@ -192,13 +192,7 @@ done
 for svc in autopost-connector autopost-wifi-recovery tailscaled; do
   [ -L "$MNT/etc/systemd/system/multi-user.target.wants/${svc}.service" ] || { echo "ERROR: ${svc}.service not enabled in the image"; exit 1; }
 done
-# bluetooth/hciuart ship their own [Install] wants and some releases enable them via a different target, so they
-# are force-linked above but only WARNED on here - a missing symlink is usually a packaging difference, not a
-# broken image, and failing the whole build over it would be wrong.
-[ -L "$MNT/etc/systemd/system/multi-user.target.wants/bluetooth.service" ]   || chroot "$MNT" systemctl is-enabled bluetooth.service >/dev/null 2>&1   || echo "WARN: bluetooth.service may not start - check Bluetooth comes up on the first test card"
-# hciuart must be wired to its OWN trigger, which is what actually attaches the radio at the right moment.
-[ -L "$MNT/etc/systemd/system/dev-serial1.device.wants/hciuart.service" ]   || { echo "ERROR: hciuart is not hooked to dev-serial1.device - the Bluetooth radio would never be attached"; exit 1; }
-LOG "hciuart wired to its dev-serial1.device trigger" 
+# Bluetooth and hciuart are no longer part of the recipe, so nothing here asserts on them.
 
 # 8b) CORRUPTION-PROOF-READY: mount the AUTOPOST-DATA partition at /var/lib/autopost + move NetworkManager's saved
 #     connections there, so the claim token AND WiFi survive the read-only overlay + power cuts. The overlay itself
