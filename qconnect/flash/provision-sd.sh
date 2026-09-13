@@ -159,6 +159,22 @@ print(json.dumps({"p_device_id":os.environ["QP_D"],"p_dealer_id":os.environ["QP_
     die "ticket issue failed (HTTP $CODE): $(head -c 300 /tmp/qconnect-enrol.out). Card NOT written."
   fi
   echo "    ticket issued (valid ${ENROL_TTL_DAYS} days)."
+
+  # Record WHICH remote-access key went onto this card, so the fleet dashboard
+  # can warn before it expires instead of after. Never fatal: the card is
+  # already good, and an unrecorded key simply shows as "unrecorded".
+  if [[ -n "${TS_LAST_KEY_ID:-}" ]]; then
+    curl -s -o /dev/null --max-time 15 \
+      -X POST "$SB_URL/rest/v1/rpc/qconnect_record_card_key" \
+      -H "apikey: $SB_SERVICE_KEY" -H "Authorization: Bearer $SB_SERVICE_KEY" \
+      -H "Content-Type: application/json" \
+      -d "$(QP_D="$DEVICE_ID" QP_K="$TS_LAST_KEY_ID" QP_E="${TS_LAST_KEY_EXPIRES:-}" python3 -c \
+          'import json,os
+print(json.dumps({"p_device_id":os.environ["QP_D"],"p_key_id":os.environ["QP_K"],
+                  "p_expires_at":os.environ.get("QP_E") or None}))')" \
+      && echo "    remote-access key recorded against the card." \
+      || echo "    NOTE: could not record the key id; the card is fine, the dashboard will show it as unrecorded."
+  fi
 fi
 
 echo "==> Writing QConnect payload to $BOOT"

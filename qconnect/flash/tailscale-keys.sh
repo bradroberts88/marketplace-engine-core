@@ -47,6 +47,13 @@ print(json.dumps({
     echo "ERROR: Tailscale key request failed (HTTP $code): $(head -c 300 "$resp")" >&2
     rm -f "$resp"; return 1
   fi
+  # The key itself on stdout; its id and expiry go to TS_LAST_KEY_ID /
+  # TS_LAST_KEY_EXPIRES so the card writer can record WHICH key went onto WHICH
+  # card. Without that, a key about to expire is invisible until a box needs
+  # remote help and cannot be reached.
+  TS_LAST_KEY_ID=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("id",""))' "$resp" 2>/dev/null)
+  TS_LAST_KEY_EXPIRES=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("expires",""))' "$resp" 2>/dev/null)
+  export TS_LAST_KEY_ID TS_LAST_KEY_EXPIRES
   python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["key"])' "$resp" || {
     echo "ERROR: Tailscale returned no key" >&2; rm -f "$resp"; return 1; }
   rm -f "$resp"
