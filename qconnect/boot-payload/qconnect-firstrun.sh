@@ -120,6 +120,16 @@ if h_ssid:
     subprocess.run(cmd, check=False)
 PYEOF
 
+# If a modem is fitted and no APN was set at the bench, default to the AT&T
+# consumer/IoT APN so the box has a fighting chance out of the box.
+python3 <<'PYEOF'
+import json
+p = json.load(open('/opt/qconnect/etc/provision.json'))
+if not p.get('cellular_apn') and (p.get('cellular_modem') or p.get('cellular_apn') == ''):
+    p['cellular_apn'] = 'broadband'
+    json.dump(p, open('/opt/qconnect/etc/provision.json','w'), indent=2)
+PYEOF
+
 # Wired always wins when a cable is present: highest priority of all.
 nmcli connection modify "Wired connection 1" connection.autoconnect-priority 200 2>/dev/null
 
