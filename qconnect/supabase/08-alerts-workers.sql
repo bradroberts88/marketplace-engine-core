@@ -1,9 +1,11 @@
 -- QConnect 08 — alerts and the background workers that raise them
 --
--- Nothing here waits for someone to open the dashboard. Five workers run once
--- a minute: they fail overdue steps, notice boxes that went quiet, expire
--- commands a box never picked up, catch updates that never reported back
--- healthy, and hand new alerts to the email dispatcher.
+-- Nothing here waits for someone to open the dashboard. Five workers run every
+-- 30 minutes between 07:00 and 20:00 Mountain time: they fail overdue steps,
+-- notice boxes that went quiet, expire commands a box never picked up, catch
+-- updates that never reported back healthy, and hand new alerts to the email
+-- dispatcher. Outside that window the workers wake and go straight back to
+-- sleep, so overnight problems surface in the morning batch.
 --
 -- Run AFTER 07. Idempotent, safe on a live fleet.
 
@@ -277,7 +279,7 @@ revoke execute on function public.qconnect_run_workers() from anon, authenticate
 -- ------------------------------------------------- heartbeat closes the loop
 -- Same signature as 05 plus two things: a check-in ticks the onboarding
 -- checklist, and it clears the "gone quiet" alert immediately rather than
--- waiting up to a minute for the worker.
+-- waiting for the next worker run.
 create or replace function public.qconnect_heartbeat(
   p_device_id text, p_device_token text, p_status jsonb
 ) returns boolean
