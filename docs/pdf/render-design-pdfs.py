@@ -316,9 +316,9 @@ def build(src, out, title, subtitle, version, date,
     story.append(Spacer(1, 78 * mm))
     story.append(Paragraph(cover_brand, S["coverSub"]))
     story.append(Spacer(1, 6))
-    story.append(Paragraph(title, S["coverTitle"]))
+    story.append(Paragraph(esc(title), S["coverTitle"]))
     story.append(Spacer(1, 10))
-    story.append(Paragraph(subtitle, S["coverSub"]))
+    story.append(Paragraph(esc(subtitle), S["coverSub"]))
     story.append(Spacer(1, 26))
     story.append(Paragraph(
         cover_meta if cover_meta is not None else
