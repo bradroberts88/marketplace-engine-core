@@ -260,11 +260,14 @@ def parse(md, width, sections):
 
 
 class Doc(BaseDocTemplate):
-    def __init__(self, path, title, subtitle, **kw):
+    def __init__(self, path, title, subtitle, brand="Marketplace Engine (AutoPost)",
+                 footer_note="Internal — confidential", **kw):
         BaseDocTemplate.__init__(self, path, pagesize=A4, title=title,
                                  author="Marketplace Engine", **kw)
         self.docTitle = title
         self.subtitle = subtitle
+        self.brand = brand
+        self.footer_note = footer_note
         w, h = A4
         m = 20 * mm
         frame = Frame(m, 20 * mm, w - 2 * m, h - 20 * mm - 26 * mm, id="body")
@@ -289,33 +292,36 @@ class Doc(BaseDocTemplate):
         canv.setFont("DJ", 7.5)
         canv.setFillColor(MUTED)
         canv.drawString(20 * mm, h - 14 * mm, self.docTitle)
-        canv.drawRightString(w - 20 * mm, h - 14 * mm, "Marketplace Engine (AutoPost)")
+        canv.drawRightString(w - 20 * mm, h - 14 * mm, self.brand)
         canv.setStrokeColor(RULE)
         canv.setLineWidth(0.5)
         canv.line(20 * mm, h - 16 * mm, w - 20 * mm, h - 16 * mm)
         canv.line(20 * mm, 15 * mm, w - 20 * mm, 15 * mm)
-        canv.drawString(20 * mm, 11 * mm, "Internal — confidential")
+        canv.drawString(20 * mm, 11 * mm, self.footer_note)
         canv.drawRightString(w - 20 * mm, 11 * mm, "Page %d" % (doc.page - 1))
         canv.restoreState()
 
 
-def build(src, out, title, subtitle, version, date):
+def build(src, out, title, subtitle, version, date,
+          brand="Marketplace Engine (AutoPost)", cover_brand="Marketplace&nbsp;Engine",
+          cover_meta=None, footer_note="Internal — confidential"):
     md = open(src, encoding="utf-8").read()
     md = re.sub(r"^#\s+.*\n", "", md, count=1)
-    doc = Doc(out, title, subtitle)
+    doc = Doc(out, title, subtitle, brand=brand, footer_note=footer_note)
     width = doc.width
     sections = []
     body = parse(md, width, sections)
 
     story = []
     story.append(Spacer(1, 78 * mm))
-    story.append(Paragraph("Marketplace&nbsp;Engine", S["coverSub"]))
+    story.append(Paragraph(cover_brand, S["coverSub"]))
     story.append(Spacer(1, 6))
     story.append(Paragraph(title, S["coverTitle"]))
     story.append(Spacer(1, 10))
     story.append(Paragraph(subtitle, S["coverSub"]))
     story.append(Spacer(1, 26))
     story.append(Paragraph(
+        cover_meta if cover_meta is not None else
         "Version %s &nbsp;·&nbsp; %s<br/>Repository: bradroberts88/marketplace-engine-core<br/>"
         "Product codename: AutoPost" % (version, date), S["coverMeta"]))
     story.append(NextPageTemplate("body"))
@@ -353,3 +359,11 @@ if __name__ == "__main__":
           "Pi connection defect register",
           "Every connection defect found, ranked, with its current status",
           "1.0", date)
+    build("docs/PI-OWNERS-GUIDE.md", "docs/pdf/Pi-Owners-Guide.pdf",
+          "Getting started with your Pi",
+          "A plain-English owner's guide — no technical knowledge needed",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Keep this leaflet with your Pi"
+          % date,
+          footer_note="Owner's guide")

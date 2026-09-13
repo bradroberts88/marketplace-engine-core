@@ -29,7 +29,8 @@ This is the first batch of material; more is on the way.
 | `SOFTWARE-DESIGN.md` | Software design document: module boundaries, interfaces, state machines, conventions, testing. |
 | `PI-CONNECT-FAILURE-ANALYSIS.md` | The 13/09/2026 connection review, kept unchanged as the dated record. |
 | `PI-CONNECT-DEFECT-REGISTER.md` | Every defect from that review in one list, with its status in the current code. |
-| `pdf/` | Styled PDFs of the two design documents and the defect register. |
+| `PI-OWNERS-GUIDE.md` | Plain-English getting-started guide for non-developers who receive a Pi box. |
+| `pdf/` | Styled PDFs of the two design documents, the defect register, and the owner's guide. |
 
 ### bench/
 
