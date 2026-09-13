@@ -118,9 +118,18 @@ grant execute on function public.qconnect_dealer_id() to authenticated;
 
 -- ---------------------------------------------------------------- audit log
 -- Fleet Manager compatibility: older installs have a VIEW named qconnect_audit
--- over a qconnect_audit_log table. Drop the view so the real table can take
--- the name; its rows are carried forward below.
-drop view if exists public.qconnect_audit;
+-- over a qconnect_audit_log table. Drop the view (only if it really is a view)
+-- so the real table can take the name; its rows are carried forward below.
+do $$
+begin
+  if exists (
+    select 1 from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname = 'qconnect_audit' and c.relkind = 'v'
+  ) then
+    execute 'drop view public.qconnect_audit';
+  end if;
+end $$;
 
 create table if not exists public.qconnect_audit (
   id          bigint generated always as identity primary key,
@@ -207,6 +216,9 @@ end $$;
 -- --------------------------------------------------------------- kill switch
 -- Admin: any box. group_admin (when qconnect_dealer_groups exists): own group.
 -- Every toggle is written to the audit trail with actor, role and dealer.
+-- Older installs return void from this function; drop it so the return type
+-- can change to boolean.
+drop function if exists public.qconnect_set_enabled(text, boolean);
 create or replace function public.qconnect_set_enabled(
   p_device_id text, p_enabled boolean
 ) returns boolean
@@ -584,6 +596,10 @@ grant execute on function public.qconnect_heartbeat(text, text, jsonb) to anon;
 -- version must go: keeping both makes every call ambiguous ("function is not
 -- unique") and every card fails to register.
 drop function if exists public.qconnect_register(text, text, text, text);
+-- Older installs have a 4-argument qconnect_register; drop it so only the
+-- connection-aware signature remains (no ambiguous overloads).
+drop function if exists public.qconnect_register(text, text, text, text);
+
 create or replace function public.qconnect_register(
   p_device_id text, p_dealer_id text, p_device_token text, p_tailscale_ip text,
   p_connection_path text default null, p_connection_detail text default null,
