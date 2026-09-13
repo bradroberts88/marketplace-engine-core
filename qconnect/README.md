@@ -15,16 +15,19 @@ qconnect/
   supabase/02-admin-killswitch-audit.sql  admin-only on/off switch, audit trail, scoped fleet views
   supabase/03-token-hashing.sql        store only a SHA-256 fingerprint of each device token
   supabase/04-bench-tests.sql          bench runs + the 7-phase checklist, with the go/no-go rule
+  supabase/05-connectivity.sql         connection path / fault columns, fleet health verdict, bench phase 8
   app/lib/qconnect.functions.ts        -> src/lib/qconnect.functions.ts
   app/routes/_authenticated/fleet.tsx  -> src/routes/_authenticated/fleet.tsx
   app/routes/_authenticated/bench.tsx  -> src/routes/_authenticated/bench.tsx
-  device/, boot-payload/, flash/       the card-side scripts, unchanged from the kit
+  device/qconnect-netmanager.sh        cable -> Wi-Fi -> cellular -> hotspot, with real-internet checks
+  device/, boot-payload/, flash/       the rest of the card-side scripts
+  docs/CONNECTIVITY.md                 how a box gets online, and what to do when it does not
   docs/                                the security review and bench checklist, as markdown
 ```
 
 ## Order of operations
 
-1. Run `supabase/01` … `04` in the SQL editor, in that order. Each file is idempotent and safe to
+1. Run `supabase/01` … `05` in the SQL editor, in that order. Each file is idempotent and safe to
    re-run.
 2. Make yourself an admin (the on/off switch and the bench screens require it):
    ```sql
@@ -35,8 +38,8 @@ qconnect/
    Sign out and back in so the new token carries the claim. For dealership staff, set
    `{"dealer_id":"their-dealer-id"}` instead — they then see only their own boxes.
 3. Copy the three app files into `src/` and add links to `/fleet` and `/bench` in your navigation.
-4. Flash a card with `flash/provision-sd.sh`, run the printed `qconnect_preregister(...)` line, and
-   work through the bench screen.
+4. Flash a card with `flash/provision-sd.sh` (it pre-registers the device itself now) and work
+   through the bench screen. See `docs/CONNECTIVITY.md` for the connection options.
 
 ## What changed versus the uploaded kit
 
@@ -48,14 +51,21 @@ qconnect/
 | 4 — anyone signed in could flip the kill switch | **Fixed in `02`**: admin claim checked inside the RPC, every action written to `qconnect_audit` |
 | 5 — device tokens stored in plaintext | **Fixed in `03`**: only a SHA-256 fingerprint is stored; no device-side change needed |
 
+Beyond the review, the card-side scripts were rebuilt to fix the "identical cards, different outcome"
+failures catalogued in `../docs/PI-CONNECT-FAILURE-ANALYSIS.md`: automatic pre-registration, one
+Tailscale key per card, the correct boot mountpoint for the first-run hook, `RequiresMountsFor=` on
+every unit that tests a file on a mounted partition, a hard NetworkManager check at install time, and
+a connection manager that falls back between cable, Wi-Fi, cellular and hotspot and reports why it
+failed.
+
 Two things the review calls out that software cannot fix for you, both in `docs/SECURITY-REVIEW.md`:
 create Tailscale keys as `tag:qconnect` with a 90-day expiry and ACLs that cage those nodes, and
 rotate the batch key when a device is reported stolen.
 
 ## Verified
 
-`supabase/_test/run-local-tests.sh` runs all four files against a throwaway local Postgres — twice
-each, to prove they can be re-run safely — then a 12-check smoke test. Last run: all 12 passed.
+`supabase/_test/run-local-tests.sh` runs all five files against a throwaway local Postgres — twice
+each, to prove they can be re-run safely — then a 17-check smoke test. Last run: all 17 passed.
 
 - token stored only as a fingerprint, plaintext column empty
 - wrong token rejected; unknown device rejected
@@ -64,9 +74,13 @@ each, to prove they can be re-run safely — then a 12-check smoke test. Last ru
 - fleet and offline views return nothing to an unscoped user, everything to an admin
 - kill switch writes an audit row with the actor's email
 - a disabled box is told `enabled=false` on its next check-in
-- a bench run seeds all 29 steps; open or failed steps give `no_go`, a clean sweep gives `go`
+- a bench run seeds all 40 steps (including the 10-step connectivity phase); open or failed steps
+  give `no_go`, a clean sweep gives `go`
+- a heartbeat carrying connection path, signal and fault lands in real columns; the fleet view turns
+  them into one health verdict, and a recovered box clears its own fault
 
-The card-side scripts pass a syntax check unchanged; they were not modified.
+All card-side shell scripts pass `bash -n` and the captive portal passes a Python syntax check. They
+have not been run on physical hardware in this environment.
 
 ## Not yet done
 
