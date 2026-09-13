@@ -816,6 +816,10 @@ function bootFilesFor(plan) {
   if (plan.tsAuthKey) {
     files.push({ path: 'autopost-tailscale.env', content: tailscaleEnv({ tsAuthKey: plan.tsAuthKey, tsHostname: plan.tsHostname || plan.hostname }), mode: 0o600 });
   }
+  // The QConnect payload, so the dry-run preview shows exactly what the card gets.
+  if (plan.qconnect) {
+    files.push(...require('./qconnect-payload').qconnectBootFiles(plan.qconnect));
+  }
   return files; // cmdline.txt + config.txt are PATCHED in place by the writer (read existing -> *Patched -> write)
 }
 
