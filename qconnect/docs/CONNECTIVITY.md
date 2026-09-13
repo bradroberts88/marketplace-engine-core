@@ -48,7 +48,7 @@ identity, Tailscale key and database details:
   --supabase-anon-key sb_publishable_... \
   --supabase-service-key sb_secret_... \
   --wifi-ssid "DealerGuest" --wifi-pass "guestpass123" \
-  --cellular-apn broadband \
+  --cellular-apn broadband   `# AT&T default; m2m.com.attz for IoT plans` \
   --hotspot-ssid "Sales iPhone" --hotspot-pass "..."
 ```
 
