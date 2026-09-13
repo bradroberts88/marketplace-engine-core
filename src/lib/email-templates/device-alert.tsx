@@ -81,8 +81,8 @@ const DeviceAlertEmail = ({
 export const template = {
   component: DeviceAlertEmail,
   subject: (data: Record<string, unknown>) =>
-    `Pi alert${data.deviceId ? ` — ${String(data.deviceId)}` : ''}: ${String(
-      data.message ?? 'device needs attention'
+    `Pi alert${data['deviceId'] ? ` — ${String(data['deviceId'])}` : ''}: ${String(
+      data['message'] ?? 'device needs attention'
     )}`,
   displayName: 'Pi fleet alert',
   previewData: {
