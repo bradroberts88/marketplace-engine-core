@@ -332,6 +332,18 @@ class Portal(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         data = urllib.parse.parse_qs(self.rfile.read(length).decode())
+        # Retry: nudge the setup loop to try every path again with what is
+        # already saved. Useful after plugging a cable in or seating a SIM.
+        if self.path.startswith("/retry"):
+            os.makedirs(STATE_DIR, exist_ok=True)
+            with open(os.path.join(STATE_DIR, "retry-now"), "w") as f:
+                f.write("1")
+            try:
+                os.remove(RESULT_FILE)
+            except OSError:
+                pass
+            self._form()
+            return
         ssid = (data.get("ssid_manual", [""])[0] or data.get("ssid", [""])[0]).strip()
         password = data.get("pass", [""])[0]
         hidden = "yes" if data.get("hidden") else "no"
