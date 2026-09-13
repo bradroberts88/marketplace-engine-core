@@ -47,7 +47,7 @@ begin
   end if;
 end;
 $$;
-grant execute on function public.qconnect_register to anon;
+grant execute on function public.qconnect_register(text, text, text, text) to anon;
 
 create or replace function public.qconnect_heartbeat(
   p_device_id text, p_device_token text, p_status jsonb
