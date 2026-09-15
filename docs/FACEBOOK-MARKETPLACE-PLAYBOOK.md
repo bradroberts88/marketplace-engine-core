@@ -245,7 +245,69 @@ wording before it goes live. Last checked 09/13/2026.
 
 ### State by state
 
-<!--STATE-TABLE-->
+Vehicle advertising is regulated state by state, by the state's motor vehicle authority, its
+attorney general, or both. Two questions matter for a Marketplace listing: **must the advertised
+price include all dealer charges**, and **is the paperwork ("documentary" or "doc") fee capped or
+just disclosed?** Dollar caps move every year in several states, so treat the figures below as
+snapshots.
+
+Where the column says *not verified*, we could not find a clear rule from the state itself. That
+does not mean there is no rule — it means the dealership's own counsel must check before posting in
+that state. Federal deceptive-advertising law applies everywhere regardless.
+
+| State | Must the advertised price include all dealer charges? | Documentary fee |
+| --- | --- | --- |
+| Alabama | Not verified — general deception law applies | No cap found |
+| Alaska | Yes, everything except tax, title, transfer and registration | No cap; must be disclosed and never called a government fee |
+| Arizona | Yes, the advertised price must be the true offer price | No cap; broker fees must be disclosed. Ads must show the dealer's street address |
+| Arkansas | Misleading pricing prohibited; full all-in wording not confirmed | Capped at $129 |
+| California | Yes, everything except tax, licence and registration, and finance charges | Capped at $85 |
+| Colorado | Yes; omitting required charges makes the advert misleading | No cap; the delivery and handling fee must be in the advertised price |
+| Connecticut | Enforced as all-in; legislation to write it into law was pending in 2026 | No cap; must be shown on the invoice |
+| Delaware | Not verified | Governed by a state handling-fee law; cap not confirmed |
+| District of Columbia | Not verified | Not verified |
+| Florida | No specific all-in rule; deceptive dealer advertising is actionable | No cap — Florida fees commonly run into the hundreds |
+| Georgia | No specific rule; the attorney general enforces truthful advertising | No cap; must be disclosed |
+| Hawaii | Any charge beyond the quoted price must be disclosed with its exact amount | No cap; must be disclosed |
+| Idaho | Yes — the price must include all costs usual before delivery | No cap; must be disclosed |
+| Illinois | Yes, including delivery and dealer preparation | Capped at roughly $300, adjusted yearly from a $150 base |
+| Indiana | Yes — the paperwork fee must be in the advertised price | About $251, adjusted yearly |
+| Iowa | Yes — the fee must be included in the advertised price | Capped at $180 |
+| Kansas | Not verified | Not verified |
+| Kentucky | Advertising is regulated; all-in wording not confirmed | No cap |
+| Louisiana | Yes — the full cash price; only tax, licence, title and registration excluded | No general cap; a $35 cap applies to credit paperwork |
+| Maine | No all-in rule, but the fee must be posted on the vehicle itself | No cap; failure to post is a consumer protection violation |
+| Maryland | Yes, in effect, through required disclosure | Capped at $500 |
+| Massachusetts | Yes — motor vehicle advertising is specifically regulated | No cap; must be disclosed |
+| Michigan | Deceptive advertising prohibited; all-in wording not confirmed | Capped at the lesser of 5% of the price or about $260 |
+| Minnesota | **No** — the paperwork fee may be left out of the advertised price if disclosed | Capped; must be stated separately on the agreement |
+| Mississippi | Advertising standards apply; all-in wording not confirmed | No cap; must be disclosed |
+| Missouri | Advertising is regulated under a fraud and deception standard | Capped at about $604, adjusted yearly |
+| Montana | Deceptive practices prohibited; all-in wording not confirmed | No cap found |
+| Nebraska | No all-in rule found; false price claims prohibited | No cap found |
+| Nevada | Yes — must include all charges the dealer knows of, except government fees | No cap; included in the price |
+| New Hampshire | No general all-in rule found | No cap; must be disclosed separately |
+| New Jersey | No all-in rule found | No cap; must be itemised and never described as a government fee |
+| New Mexico | Yes — the full cash price; only tax, title, registration and licence excluded | Must be inside the advertised price |
+| New York | Yes — all dealer charges except tax, title and registration | No fixed cap, but must be disclosed and reflect real costs. Footnotes hiding fees are treated as deceptive |
+| North Carolina | No all-in rule found | No cap; must be disclosed in adverts and itemised |
+| North Dakota | Not verified | Not verified |
+| Ohio | Yes — the advertised price must be the real selling price | Capped, adjusted yearly for inflation |
+| Oklahoma | Yes — the most prominent price must be the full selling price | No cap; must be included or disclosed |
+| Oregon | Yes — omitting required charges is deceptive | Capped by statute; overcharges must be refunded |
+| Pennsylvania | Unfair advertising prohibited; all-in wording not confirmed | No cap; must be disclosed |
+| Rhode Island | Price advertising is regulated | Cap not confirmed. Adverts must name the licensed dealer and address; classified adverts need the licence number |
+| South Carolina | Not verified | No flat cap; the fee must match real costs and be filed with the state |
+| South Dakota | The revenue department may regulate price advertising | Not verified |
+| Tennessee | Every fee tied to the purchase must be clearly defined and itemised in adverts | No cap; must be itemised |
+| Texas | Yes — the advertised price must be one the dealer will really sell at, before mandatory fees other than tax, title, licence and registration | No statewide cap found; must be itemised and disclosed |
+| Utah | Material facts must be disclosed; all-in wording not confirmed | Not verified |
+| Vermont | Vehicle advertising is regulated by attorney general rule | Not verified |
+| Virginia | Advertising is regulated by the dealer board; all-in wording not confirmed | No cap on the processing fee; must be disclosed |
+| Washington | False or misleading price claims prohibited | No cap; disclosure guidance applies |
+| West Virginia | Deceptive advertising prohibited; all-in wording not confirmed | Not verified |
+| Wisconsin | Contract terms must be clearly disclosed; advert-specific rule not confirmed | No cap; must be itemised |
+| Wyoming | No all-in advertising rule found | No cap |
 
 ### The disclaimer that goes in every description
 
