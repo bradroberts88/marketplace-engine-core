@@ -30,7 +30,9 @@ This is the first batch of material; more is on the way.
 | `PI-CONNECT-FAILURE-ANALYSIS.md` | The 09/13/2026 connection review, kept unchanged as the dated record. |
 | `PI-CONNECT-DEFECT-REGISTER.md` | Every defect from that review in one list, with its status in the current code. |
 | `PI-OWNERS-GUIDE.md` | Plain-English getting-started guide for non-developers who receive a Pi box. |
-| `pdf/` | Styled PDFs of the two design documents, the defect register, and the owner's guide. |
+| `FACEBOOK-MARKETPLACE-PLAYBOOK.md` | How Marketplace ranks and polices vehicle listings, the 50-state advertising rules, and what is built versus missing. |
+| `pdf/` | Styled PDFs of the two design documents, the defect register, the owner's guide and the Marketplace playbook. |
+
 
 ### bench/
 

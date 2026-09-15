@@ -387,3 +387,15 @@ if __name__ == "__main__":
           cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Print and keep on the bench" % date,
           footer_note="Bench tracker",
           contents=False)
+    build("docs/FACEBOOK-MARKETPLACE-PLAYBOOK.md",
+          "docs/pdf/Facebook-Marketplace-Playbook.pdf",
+          "Facebook Marketplace playbook",
+          "How Marketplace works, what we have built, and what is still missing",
+          "1.0", date,
+          brand="Marketplace Engine (AutoPost)", cover_brand="Marketplace&nbsp;Engine",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>"
+          "Marketplace and legal facts last checked %s<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
+          % (date, date),
+          footer_note="Marketplace playbook — summary only, not legal advice")
+
