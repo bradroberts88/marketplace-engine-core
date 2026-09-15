@@ -8,7 +8,7 @@ our system does today versus what still has to be built.
 Written in plain English. No prior knowledge assumed.
 
 **Facts about Marketplace and about the law were last checked 09/13/2026.** Both change without
-notice. Anything marked *reported* is what sellers and vendors say happens, not something Facebook
+notice. Anything marked reported is what sellers and vendors say happens, not something Facebook
 has ever confirmed in writing.
 
 ---
@@ -84,10 +84,10 @@ weights or anything car-specific. Treat these as sensible defaults, not as facts
 
 None of this is confirmed by Facebook. It is what people who do this at volume consistently say.
 
-- Brand-new accounts posting in bulk. New profiles appear to sit in a probation period — *reported*
+- Brand-new accounts posting in bulk. New profiles appear to sit in a probation period — reported
   as roughly five to ten active listings, with everything reviewed, and higher-value categories
   such as vehicles gated behind an unpublished trust threshold.
-- Listing velocity: posting many vehicles within a few minutes. *Reported* thresholds are around
+- Listing velocity: posting many vehicles within a few minutes. Reported thresholds are around
   ten vehicles a day per account and at least five minutes between posts.
 - Identical text and identical photos appearing across several sellers.
 - Repeatedly deleting and re-posting the same vehicle instead of editing it.
@@ -97,7 +97,7 @@ None of this is confirmed by Facebook. It is what people who do this at volume c
 - Reused browser fingerprints and shared or shifting network addresses. Firms that scrape
   Marketplace describe device fingerprinting, rate limiting and machine-learning detection as the
   defences they run into. This is the single area our existing system already addresses.
-- Leaving sold vehicles up. *Reported* expectation is removal within a day.
+- Leaving sold vehicles up. Reported expectation is removal within a day.
 
 ### Warning signs to watch, and what each means
 
@@ -251,7 +251,7 @@ price include all dealer charges**, and **is the paperwork ("documentary" or "do
 just disclosed?** Dollar caps move every year in several states, so treat the figures below as
 snapshots.
 
-Where the column says *not verified*, we could not find a clear rule from the state itself. That
+Where the column says "not verified", we could not find a clear rule from the state itself. That
 does not mean there is no rule — it means the dealership's own counsel must check before posting in
 that state. Federal deceptive-advertising law applies everywhere regardless.
 
