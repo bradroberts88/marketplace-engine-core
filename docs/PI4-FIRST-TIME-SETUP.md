@@ -67,6 +67,23 @@ moment, but not that way.
 
 ## 4. Erasing everything off the card
 
+First, a thirty-second check of what is on the card, so you know which situation
+you are in. In Windows, open the card's drive (it is usually called **bootfs**
+or **BOOTFS**) and look at the file and folder names:
+
+- A folder called **overlays**, or files with **autopost** in the name — the card
+  has the old software on it. Old and new must never be mixed, so the card gets
+  the full wipe below. Do not try to tidy it up by hand.
+- A folder called **qconnect** — the card already has the new system. You do not
+  need to wipe it unless we have asked you to; skip to section 8.
+- Anything else, or nothing at all — treat it as old and wipe it. Nothing on a
+  Pi card is worth keeping; there are no photos or documents on it.
+
+If you see a file called `provision.json`, do not open it or share its contents
+with anyone — it is the card's private access code.
+
+Now the wipe:
+
 1. If you do not already have it, download **Raspberry Pi Imager** from
    raspberrypi.com and install it. It is free and made by the people who make the
    Pi.
