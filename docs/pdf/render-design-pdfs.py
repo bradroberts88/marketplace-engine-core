@@ -369,6 +369,24 @@ if __name__ == "__main__":
           "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
           % date,
           footer_note="Owner's guide — QCAI Support 1-855-782-6824")
+    build("docs/PI4-FIRST-TIME-SETUP.md", "docs/pdf/Pi4-First-Time-Setup.pdf",
+          "Setting up two Pi 4s from scratch",
+          "A Windows walkthrough for someone who has never done this",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>Follow it top to bottom, one Pi at a time<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824 &nbsp;·&nbsp; support@quantumconnectai.com"
+          % date,
+          footer_note="First-time setup — QCAI Support 1-855-782-6824")
+    build("docs/PI4-SETUP-CHECKLIST.md", "docs/pdf/Pi4-Setup-Checklist.pdf",
+          "Two Pi 4s — tick sheet",
+          "Print this and keep it next to the laptop",
+          "1.0", date,
+          brand="QConnect", cover_brand="QConnect",
+          cover_meta="Version 1.0 &nbsp;·&nbsp; %s<br/>"
+          "QCAI Support &nbsp;·&nbsp; 1-855-782-6824" % date,
+          footer_note="Setup tick sheet",
+          contents=False)
     build("docs/PI-OWNERS-HANDOUT.md", "docs/pdf/Pi-Owners-Handout.pdf",
           "Your Pi — the one-page version",
           "Plug in, get online, who to call",
