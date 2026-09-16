@@ -18,6 +18,7 @@ Date: ______________  Done by: ______________
 - [ ] Power unplugged, memory card taken out
 - [ ] Card erased (Imager → Erase)
 - [ ] Raspberry Pi OS Lite 64-bit written, customisation settings cleared
+      (including anything about SSH / remote access — leave it off)
 - [ ] Card removed and reinserted; bootfs drive visible
 - [ ] Prepare-Card.ps1 run, ended with "This card is ready."
 - [ ] Card ejected safely and put back in the Pi

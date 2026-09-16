@@ -114,8 +114,11 @@ Still in Raspberry Pi Imager:
    that is what we want.
 3. Click **Choose storage** and pick the same card as before.
 4. Click **Next**. If it offers to apply customisation settings, choose
-   **No, clear settings**. Our own step does all of that, and two sets of
+   **No, clear settings**. This includes anything it asks about remote access
+   (SSH) — leave all of it off. Our own step does all of that, and two sets of
    settings fighting each other is a common cause of a Pi that never connects.
+   Support reaches the Pi securely on its own once it connects; you do not need
+   to switch anything on for us.
 5. Click **Yes** to write, and wait. Ten minutes is normal. It will verify the
    card afterwards; let it finish.
 6. When it says "Write Successful", **do not eject yet**. Take the card out of
