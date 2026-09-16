@@ -4,19 +4,18 @@
 
 The micro SD card shows as **D:** with an `overlays` folder and `autopost` files. That is the old AutoPost software. The new QConnect system must never be mixed with the old files (leftovers are a known cause of cards that boot but never finish setup), so this card gets a full wipe and a fresh write — not a cleanup.
 
-## What the user will do (guided, step by step in chat)
+## Where we are
 
-1. **Erase the card** with the free Raspberry Pi Imager (the "Erase" option), drive D:.
+The walkthrough documents are already updated and printed (the setup guide now has the "old card vs new card" check; the bench tracker has rows QCN-0001 and QCN-0002). The user says Raspberry Pi Imager is installed ("done"). The remaining work is purely guided, step by step in chat — no further document or code changes expected.
+
+## What the user will do (guided, one step at a time in chat)
+
+1. **Erase the card** with the Raspberry Pi Imager ("Erase" option), choosing drive D:. Windows must never be allowed to format the card instead — always answer No to any format prompt.
 2. **Write a fresh system** with the same tool: Raspberry Pi OS Lite (64-bit), drive D:.
-3. **Add our software** by right-clicking `Prepare-Card.ps1` and answering the four plain questions.
-4. **First power-on** of the Pi and confirm it comes online (cable first, then Wi-Fi, then the SIM).
+3. **Add our software** by right-clicking `Prepare-Card.ps1` and answering the four plain questions (Pi name QCN-0001, dealership, Wi-Fi name and password — filled in even when using a cable).
+4. **First power-on** of the Pi and confirm it comes online (cable first, then Wi-Fi, then the AT&T SIM), then check the dashboard.
 
-These exact steps, in plain English with pictures-in-words, already exist in the walkthrough I built (`docs/PI4-FIRST-TIME-SETUP.md`) with its tick sheet. I will walk the user through them one step at a time in chat, starting with installing Raspberry Pi Imager.
-
-## Small changes I'll make
-
-- **`docs/PI4-FIRST-TIME-SETUP.md`**: add a short "how to tell an old card from a new card" note (overlays/autopost files = old, wipe it; qconnect folder = new) so this is self-serve next time, plus a "checking what's on the card" step before erasing. Re-render the PDF and refresh the copy in Files.
-- **`docs/PI-BATCH-TRACKER.md`**: add a row entry for these two Pi 4s so results get logged as we go.
+After the first Pi passes, repeat the same steps for the second Pi (QCN-0002) — never copying one card to the other.
 
 ## Before step 3 can succeed
 
@@ -24,5 +23,4 @@ The fleet database must be switched on inside the **QConnect Fleet Manager** pro
 
 ## Out of scope
 
-- No changes to Pi behaviour or the fleet software itself.
-- The second Pi 4: same steps afterwards, never copying one card to the other.
+- No changes to Pi behaviour, documents, or the fleet software itself.
