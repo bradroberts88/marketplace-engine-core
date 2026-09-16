@@ -142,7 +142,9 @@ function New-TailscaleKey([string] $deviceId) {
     } catch {
         Die "could not get a remote-access key for this card: $($_.Exception.Message)"
     }
-    if (-not $resp.key) { Die "the remote-access service returned no key." }
+    if (-not $resp.PSObject.Properties['key'] -or -not $resp.key) {
+        Die "the remote-access service returned no key."
+    }
     # Strict mode turns a missing property into an error, and the shape of this
     # reply is not ours to depend on. Read both defensively.
     $script:TsKeyId = if ($resp.PSObject.Properties['id']) { $resp.id } else { $null }
