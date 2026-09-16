@@ -111,6 +111,10 @@ def table_block(rows, width):
         colw = [width * 0.36, width * 0.64]
     elif ncol == 4:
         colw = [width * 0.19, width * 0.24, width * 0.15, width * 0.42]
+    elif ncol == 9:
+        colw = [width * 0.04, width * 0.12, width * 0.11, width * 0.09,
+                width * 0.07, width * 0.07, width * 0.09, width * 0.32,
+                width * 0.09]
     tbl = Table([header] + body, colWidths=colw, repeatRows=1)
     style = [
         ("BACKGROUND", (0, 0), (-1, 0), INK),
